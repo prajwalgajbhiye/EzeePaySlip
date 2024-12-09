@@ -15,7 +15,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class FileUploadForOtSection extends StatefulWidget {
   final double containerHeightFactor;
-  const FileUploadForOtSection({super.key, required this.containerHeightFactor});
+  final double containerWidthFactor;
+
+  const FileUploadForOtSection(
+      {super.key, required this.containerHeightFactor, required this.containerWidthFactor});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -37,8 +40,6 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
       _loadSavedOtExcelFile();
     });
   }
-
-
 
 
   Future<void> downloadPdf() async {
@@ -84,7 +85,8 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
       employeeDataList.add({
         'srNo': srNo,
         'name': employeeName,
-        'workingDays': totalWorkingDays.toStringAsFixed(0), // Ensure it’s formatted to 1 decimal
+        'workingDays': totalWorkingDays.toStringAsFixed(0),
+        // Ensure it’s formatted to 1 decimal
         'overtime': totalOvertime,
         'overtimeDays': overtimeDays.toStringAsFixed(3),
       });
@@ -103,19 +105,31 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
               children: [
                 pw.Text(
                   'SATYAM CONSTRUCTION',
-                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, font: boldFont),
+                  style: pw.TextStyle(fontSize: 20,
+                      fontWeight: pw.FontWeight.bold,
+                      font: boldFont),
                 ),
                 pw.Text(
                   'Employee Overtime Report',
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, font: boldFont),
+                  style: pw.TextStyle(fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                      font: boldFont),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Expanded(
                   child: pw.Table.fromTextArray(
-                    headers: ['Sr No', 'Employee Name', 'Working Days', 'Overtime hours', 'Overtime days'],
-                    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: boldFont),
+                    headers: [
+                      'Sr No',
+                      'Employee Name',
+                      'Working Days',
+                      'Overtime hours',
+                      'Overtime days'
+                    ],
+                    headerStyle: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, font: boldFont),
                     cellStyle: pw.TextStyle(font: font),
-                    data: rows.map((row) => [
+                    data: rows.map((row) =>
+                    [
                       row['srNo'],
                       row['name'],
                       row['workingDays'],
@@ -140,7 +154,8 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
 
     // Generate PDF filename with date and time
     final now = DateTime.now();
-    final formattedDateTime = '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}';
+    final formattedDateTime = '${now.year}-${now.month}-${now.day}_${now
+        .hour}-${now.minute}';
     final fileName = 'EmployeeOvertimeReport_$formattedDateTime.pdf';
 
     // Save PDF to device file system
@@ -200,7 +215,7 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
     otEmployeeData.clear();
 
     // Start reading after skipping unnecessary rows (e.g., headers)
-    for (var row in excel.tables['Sheet2']!.rows.skip(3)) {
+    for (var row in excel.tables['Sheet2']!.rows.skip(4)) {
       // Adjust the skip value as needed
       var name = row[3]?.value?.toString() ??
           ''; // Adjust column index for 'EMPLOYEE NAME'
@@ -317,12 +332,15 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
   void previewOtEmployeeData() {
     final name = nameController.text.trim();
     if (name.isNotEmpty && otEmployeeData.containsKey(name)) {
+      // Safely convert 'Sr No' to an int if possible, or use a default value
+      final employeeNumber = int.tryParse(otEmployeeData[name]!['Sr No'] ?? '') ?? -1;
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PreviewPage(
             employeeData: otEmployeeData[name]!,
             employeeName: name,
+            employeeNumber: employeeNumber, // Pass the converted int here
           ),
         ),
       );
@@ -336,107 +354,141 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-            child: Container(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * widget.containerHeightFactor,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width * 0.47,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: MediaQuery
+            .of(context)
+            .size
+            .height * widget.containerHeightFactor,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width * widget.containerWidthFactor,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Upload Excel File for OT',
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: uploadOtExcelFile,
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Choose File'),
+            ),
+            const SizedBox(height: 10),
+            Text(otFileName ?? 'No file selected',
+                style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: "Employee Name",
+                labelStyle: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+                floatingLabelStyle: TextStyle(
+                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.bold,
+                ),
+                hintText: 'Enter Employee Name',
+                hintStyle: TextStyle(color: Colors.grey[400]),
+                // prefixIcon: Icon(Icons.edit_note_sharp, color: Colors.teal),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.grey[400]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.grey.shade800, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.grey[500]!),
+                ),
+                filled: true,
+                fillColor: Colors.white70,
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Upload Excel File for OT',
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: uploadOtExcelFile,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Choose File'),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(otFileName ?? 'No file selected',
-                      style: const TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Enter Employee Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: previewOtEmployeeData,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            padding: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Preview",
-                                style: TextStyle(color: Colors.white, fontSize: 15),
-                              ),
-                              // SizedBox(width: 20,),
-                              Icon(Icons.preview, color: Colors.white),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20,),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: downloadPdf,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            padding: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Genrate Pdf",
-                                style: TextStyle(color: Colors.white, fontSize: 15),
-                              ),
-                              // SizedBox(width: 20,),
-                              Icon(Icons.download, color: Colors.white),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    ],
-                  ),
-                  const SizedBox(height: 20,),
-                  Text("Please ensure the file name is always set to 'Sheet2'.",style: TextStyle(color: Colors.red.shade300),)
-
-                ],
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
               ),
             ),
+
+
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: previewOtEmployeeData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.all(16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Preview",
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                        // SizedBox(width: 20,),
+                        Icon(Icons.preview, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20,),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: downloadPdf,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.all(16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Genrate Pdf",
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                        // SizedBox(width: 20,),
+                        Icon(Icons.download, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+
+              ],
+            ),
+            const SizedBox(height: 20,),
+            Text("Please ensure the file name is always set to 'Sheet2'.",
+              style: TextStyle(color: Colors.red.shade300),)
+
+          ],
+        ),
+      ),
 
     );
   }

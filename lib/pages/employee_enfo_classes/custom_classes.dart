@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../../test_component.dart';
+import '../custom_invoice/generate_invoice.dart';
 import '../payment_slip/payment_slip.dart';
 
 class EmployeeInfoColumn extends StatelessWidget {
@@ -41,7 +43,7 @@ class EmployeeInfoColumn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: screenHeight > 200 ? 700 : double.infinity,
+        height: MediaQuery.of(context).size.height * 0.82,
         width: MediaQuery.of(context).size.width * 0.3,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -133,11 +135,46 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.055,
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+            floatingLabelStyle: TextStyle(
+              color: Colors.teal.shade300,
+              fontWeight: FontWeight.bold,
+            ),
+            hintText: 'Enter $label',
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            // prefixIcon: Icon(Icons.edit_note_sharp, color: Colors.teal),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[400]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.teal, width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[500]!),
+            ),
+            filled: true,
+            fillColor: Colors.white70,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
       ),
     );
@@ -186,11 +223,11 @@ class EarningColumn extends StatelessWidget {
   final TextEditingController basicWagesRateController;
 
   final TextEditingController hraRateController;
-  final TextEditingController tiffinAllowanceRateController;
-  final TextEditingController tiffinAllowanceAmountController;
+  final TextEditingController arrearHraRateController;
 
   // Calculated amount fields
   final TextEditingController basicWagesAmountController;
+  final TextEditingController arrearBasicWagesAmountController;
 
   final TextEditingController hraAmountController;
 
@@ -210,10 +247,6 @@ class EarningColumn extends StatelessWidget {
 
   final TextEditingController medAmountController;
 
-  final TextEditingController tiffinReimRateController;
-
-  final TextEditingController tiffinReimAmountController;
-
   final TextEditingController specialRateController;
 
   final TextEditingController specialAmountController;
@@ -226,10 +259,8 @@ class EarningColumn extends StatelessWidget {
       {super.key,
       required this.basicWagesRateController,
       required this.hraRateController,
-      required this.tiffinAllowanceRateController,
       required this.basicWagesAmountController,
       required this.hraAmountController,
-      required this.tiffinAllowanceAmountController,
       required this.prefRateController,
       required this.prefAmountController,
       required this.washRateController,
@@ -238,12 +269,12 @@ class EarningColumn extends StatelessWidget {
       required this.sheAmountController,
       required this.medRateController,
       required this.medAmountController,
-      required this.tiffinReimRateController,
-      required this.tiffinReimAmountController,
       required this.specialRateController,
       required this.specialAmountController,
       required this.skillRateController,
-      required this.skillAmountController});
+      required this.skillAmountController,
+      required this.arrearBasicWagesAmountController,
+      required this.arrearHraRateController});
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +284,7 @@ class EarningColumn extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.3,
-        height: screenHeight > 200 ? 700 : double.infinity,
+        height: MediaQuery.of(context).size.height * 0.82,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
@@ -269,10 +300,18 @@ class EarningColumn extends StatelessWidget {
               rateController: basicWagesRateController,
               amountController: basicWagesAmountController,
             ),
+            DeductionRow(
+              label: 'Arrear Basic Wages',
+              controller: arrearBasicWagesAmountController,
+            ),
             EarningRow(
               label: 'HRA',
               rateController: hraRateController,
               amountController: hraAmountController,
+            ),
+            DeductionRow(
+              label: 'Arrear Hra',
+              controller: arrearHraRateController,
             ),
             EarningRow(
               label: 'PRF Allowance',
@@ -304,16 +343,6 @@ class EarningColumn extends StatelessWidget {
               rateController: skillRateController,
               amountController: skillAmountController,
             ),
-            EarningRow(
-              label: 'Tiffin Allowance',
-              rateController: tiffinAllowanceRateController,
-              amountController: tiffinAllowanceAmountController,
-            ),
-            EarningRow(
-              label: 'Tiffin REIM',
-              rateController: tiffinReimRateController,
-              amountController: tiffinReimAmountController,
-            ),
           ],
         ),
       ),
@@ -323,6 +352,8 @@ class EarningColumn extends StatelessWidget {
 
 class EarningColumnTwo extends StatelessWidget {
   final TextEditingController arearAmountController;
+  final TextEditingController tiffinReimRateController;
+  final TextEditingController tiffinReimAmountController;
 
   final TextEditingController educationAmountController;
 
@@ -341,6 +372,8 @@ class EarningColumnTwo extends StatelessWidget {
   final TextEditingController otherAllowanceAmountController;
   final TextEditingController otRateController;
   final TextEditingController otAmountController;
+  final TextEditingController tiffinAllowanceRateController;
+  final TextEditingController tiffinAllowanceAmountController;
 
   const EarningColumnTwo(
       {super.key,
@@ -355,7 +388,11 @@ class EarningColumnTwo extends StatelessWidget {
       required this.otAmountController,
       required this.educationAmountController,
       required this.heavyDutyAmountController,
-      required this.overtimeAmountController});
+      required this.overtimeAmountController,
+      required this.tiffinReimRateController,
+      required this.tiffinReimAmountController,
+      required this.tiffinAllowanceRateController,
+      required this.tiffinAllowanceAmountController});
 
   @override
   Widget build(BuildContext context) {
@@ -365,14 +402,24 @@ class EarningColumnTwo extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.3,
-        height: screenHeight > 200 ? 700 : double.infinity,
-        padding: const EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height * 0.82,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
+            EarningRow(
+              label: 'Tiffin Allowance',
+              rateController: tiffinAllowanceRateController,
+              amountController: tiffinAllowanceAmountController,
+            ),
+            EarningRow(
+              label: 'Tiffin REIM',
+              rateController: tiffinReimRateController,
+              amountController: tiffinReimAmountController,
+            ),
             EarningRow(
               label: 'Other Allowance',
               rateController: otherAllowanceRateController,
@@ -450,6 +497,8 @@ class DeductionColumn extends StatefulWidget {
   final TextEditingController miscldednController;
   final TextEditingController arrearProfessionalTaxAmountController;
   final TextEditingController cmReliefFundAmountController;
+  final TextEditingController medicalClaimController;
+  final TextEditingController benevolentFundController;
 
   const DeductionColumn({
     super.key,
@@ -464,6 +513,8 @@ class DeductionColumn extends StatefulWidget {
     required this.cmReliefFundAmountController,
     required this.miscldednController,
     required this.taxAmountController,
+    required this.medicalClaimController,
+    required this.benevolentFundController,
   });
 
   @override
@@ -478,7 +529,7 @@ class _DeductionColumnState extends State<DeductionColumn> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: screenHeight > 200 ? 700 : double.infinity,
+        height: MediaQuery.of(context).size.height * 0.82,
         width: MediaQuery.of(context).size.width * 0.3,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -498,12 +549,6 @@ class _DeductionColumnState extends State<DeductionColumn> {
               label: 'Professional Tax',
               controller: widget.taxAmountController,
             ),
-            // Switch for showing/hiding ESI deduction
-            // Conditionally show the ESI row based on the switch state
-            DeductionRow(
-              label: 'ESI',
-              controller: widget.esiAmountController,
-            ),
             DeductionRow(
               label: 'GPA',
               controller: widget.gpaAmountController,
@@ -513,7 +558,7 @@ class _DeductionColumnState extends State<DeductionColumn> {
               controller: widget.unionFundAmountController,
             ),
             DeductionRow(
-              label: 'CONTRACT LABOUR CHILDREN WELFARE FUND',
+              label: 'Contract Labour Children Welfare Fund',
               controller: widget.childrenWelfareFundAmountController,
             ),
             DeductionRow(
@@ -525,16 +570,20 @@ class _DeductionColumnState extends State<DeductionColumn> {
               controller: widget.wagesAdvanceAmountController,
             ),
             DeductionRow(
-              label: 'MISCL DEDN',
-              controller: widget.miscldednController,
-            ),
-            DeductionRow(
               label: 'ARREAR PROFESSIONAL TAX',
               controller: widget.arrearProfessionalTaxAmountController,
             ),
             DeductionRow(
-              label: 'CM RELIEF FUND',
+              label: 'CM Relief fund',
               controller: widget.cmReliefFundAmountController,
+            ),
+            DeductionRow(
+              label: 'Medical Claim',
+              controller: widget.medicalClaimController,
+            ),
+            DeductionRow(
+              label: 'Benevolent Fund',
+              controller: widget.benevolentFundController,
             ),
           ],
         ),
@@ -549,10 +598,12 @@ class Summary extends StatelessWidget {
   final TextEditingController benvolentFundAmountController;
   final TextEditingController incomeTaxAmountController;
   final TextEditingController loanRecoveryAmountController;
-  final TextEditingController pfLoanInterestAmountController;
-  final TextEditingController grossEarningsController;
-  final TextEditingController grossDeductionsController;
-  final TextEditingController netSalaryController;
+
+  final TextEditingController incomeTaxController;
+  final TextEditingController loanRecoveryController;
+  final TextEditingController pfLoanInterest;
+  final TextEditingController miscldednController;
+  final TextEditingController esiAmountController;
 
   const Summary({
     super.key,
@@ -560,12 +611,267 @@ class Summary extends StatelessWidget {
     required this.benvolentFundAmountController,
     required this.incomeTaxAmountController,
     required this.loanRecoveryAmountController,
-    required this.pfLoanInterestAmountController,
+    required this.labourWelfareFundController,
+    required this.incomeTaxController,
+    required this.loanRecoveryController,
+    required this.pfLoanInterest,
+    required this.miscldednController,
+    required this.esiAmountController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.width;
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.82,
+        width: MediaQuery.of(context).size.width * 0.3,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            DeductionRow(
+              label: 'Income Tax',
+              controller: incomeTaxController,
+            ),
+
+            DeductionRow(
+              label: 'Loan Recovery',
+              controller: loanRecoveryController,
+            ),
+            DeductionRow(label: 'Pf Loan Interest', controller: pfLoanInterest),
+
+            // Switch for showing/hiding ESI deduction
+            // Conditionally show the ESI row based on the switch state
+
+            DeductionRow(
+              label: 'LABOUR WELFARE FUND',
+              controller: labourWelfareFundController,
+            ),
+
+            DeductionRow(
+              label: 'MISCL DEDN',
+              controller: miscldednController,
+            ),
+            DeductionRow(
+              label: 'ESI',
+              controller: esiAmountController,
+            ),
+            DeductionRow(
+              label: 'LABOUR WELFARE FUND',
+              controller: labourWelfareFundController,
+            ),
+            DeductionRow(
+              label: 'MEDICAL CLAIM',
+              controller: medicalClaimAmountController,
+            ),
+            DeductionRow(
+              label: 'BENEVOLENT FUND',
+              controller: benvolentFundAmountController,
+            ),
+            DeductionRow(
+              label: 'INCOME TAX',
+              controller: incomeTaxAmountController,
+            ),
+            DeductionRow(
+              label: 'LOAN RECOVERY',
+              controller: loanRecoveryAmountController,
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SummaryRow extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+
+  const SummaryRow({super.key, required this.label, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: CustomTextField(
+        label: label,
+        controller: controller,
+      ),
+    );
+  }
+}
+
+class CustomSlipSection extends StatelessWidget {
+  final double containerHeightFactor;
+  final double containerWidthFactor;
+  final VoidCallback navigateToGenerateSlip;
+
+  const CustomSlipSection({
+    super.key,
+    required this.containerHeightFactor,
+    required this.navigateToGenerateSlip,
+    required this.containerWidthFactor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * containerHeightFactor,
+      width: MediaQuery.of(context).size.width * containerWidthFactor,
+      // padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Custom Payment Slip',
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+          const Icon(
+            Icons.dashboard_customize,
+            size: 100,
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: 200,
+            child: ElevatedButton(
+              onPressed: navigateToGenerateSlip,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                padding: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Generate Slip",
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
+                  // SizedBox(width: 20,),
+                  Icon(Icons.payment, color: Colors.white),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomInvoice extends StatelessWidget {
+  final double containerHeightFactor;
+  final double containerWidthFactor;
+
+  const CustomInvoice(
+      {super.key,
+      required this.containerHeightFactor,
+      required this.containerWidthFactor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        height: MediaQuery.of(context).size.height * containerHeightFactor,
+        width: MediaQuery.of(context).size.width * containerWidthFactor,
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Create Custom Invoice ',
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+            Icon(Icons.add_box,size: 100,),
+            SizedBox(height: 10,),
+
+            SizedBox(
+              width: 200,
+              child: ElevatedButton(
+                onPressed: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(
+              builder: (context) => GenerateInvoice()));
+              },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Create Invoice",
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    // SizedBox(width: 20,),
+                    Icon(Icons.payment, color: Colors.white),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ));
+  }
+}
+
+class MonthYearSelectorScreen extends StatefulWidget {
+  final TextEditingController grossEarningsController;
+  final TextEditingController grossDeductionsController;
+  final TextEditingController netSalaryController;
+  final void Function(String, int) onMonthYearChanged;
+  final TextEditingController pfLoanInterestAmountController;
+
+  const MonthYearSelectorScreen({
+    Key? key,
+    required this.onMonthYearChanged,
     required this.grossEarningsController,
     required this.grossDeductionsController,
     required this.netSalaryController,
-    required this.labourWelfareFundController,
-  });
+    required this.pfLoanInterestAmountController,
+  }) : super(key: key);
+
+  @override
+  _MonthYearSelectorScreenState createState() =>
+      _MonthYearSelectorScreenState();
+}
+
+class _MonthYearSelectorScreenState extends State<MonthYearSelectorScreen> {
+  final List<String> months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
 
   String convertNumberToWords(double number) {
     if (number == 0) return "Zero";
@@ -646,70 +952,70 @@ class Summary extends StatelessWidget {
     return words.trim();
   }
 
+  final List<int> years =
+      List<int>.generate(20, (index) => DateTime.now().year - 10 + index);
+
+  String selectedMonth = 'January';
+  int selectedYear = DateTime.now().year;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMonth = months[DateTime.now().month - 1]; // Default current month
+    selectedYear = DateTime.now().year; // Default current year
+
+    // Notify parent widget after the build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onMonthYearChanged(selectedMonth, selectedYear);
+    });
+  }
+
+  void _updateParentState() {
+    widget.onMonthYearChanged(selectedMonth, selectedYear);
+  }
+
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.width;
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: screenHeight > 200 ? 700 : double.infinity,
         width: MediaQuery.of(context).size.width * 0.3,
-        padding: const EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
+          color: Colors.grey[200],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             DeductionRow(
-              label: 'LABOUR WELFARE FUND',
-              controller: labourWelfareFundController,
-            ),
-            DeductionRow(
-              label: 'MEDICAL CLAIM',
-              controller: medicalClaimAmountController,
-            ),
-            DeductionRow(
-              label: 'BENEVOLENT FUND',
-              controller: benvolentFundAmountController,
-            ),
-            DeductionRow(
-              label: 'INCOME TAX',
-              controller: incomeTaxAmountController,
-            ),
-            DeductionRow(
-              label: 'LOAN RECOVERY',
-              controller: loanRecoveryAmountController,
-            ),
-            DeductionRow(
               label: 'PF LOAN INTEREST',
-              controller: pfLoanInterestAmountController,
+              controller: widget.pfLoanInterestAmountController,
             ),
-            const SizedBox(height: 20),
             const SectionHeader(
               title: 'Summary',
             ),
             DeductionRow(
               label: 'Gross Earnings',
-              controller: grossEarningsController,
+              controller: widget.grossEarningsController,
             ),
             DeductionRow(
               label: 'Gross Deductions',
-              controller: grossDeductionsController,
+              controller: widget.grossDeductionsController,
             ),
             const SectionHeader(
               title: 'Salary',
             ),
             DeductionRow(
               label: 'Net Salary',
-              controller: netSalaryController,
+              controller: widget.netSalaryController,
             ),
             Text(
               maxLines: 3,
-              netSalaryController.text.isNotEmpty &&
-                      double.tryParse(netSalaryController.text) != null
-                  ? 'Rupees ${convertNumberToWords(double.parse(netSalaryController.text))} Only'
+              widget.netSalaryController.text.isNotEmpty &&
+                      double.tryParse(widget.netSalaryController.text) != null
+                  ? 'Rupees ${convertNumberToWords(double.parse(widget.netSalaryController.text))} Only'
                   : 'Net salary',
               style: const TextStyle(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
@@ -718,150 +1024,61 @@ class Summary extends StatelessWidget {
                   TextOverflow.ellipsis, // Optional: Truncate if still too long
               // softWrap: true,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SummaryRow extends StatelessWidget {
-  final String label;
-  final TextEditingController controller;
-
-  const SummaryRow({super.key, required this.label, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: CustomTextField(
-        label: label,
-        controller: controller,
-      ),
-    );
-  }
-}
-
-class MonthContainer extends StatefulWidget {
-  const MonthContainer({super.key});
-
-  @override
-  State<MonthContainer> createState() => _MonthContainerState();
-}
-
-class _MonthContainerState extends State<MonthContainer> {
-  @override
-  void initState() {
-    super.initState();
-    DateTime now = DateTime.now();
-    selectedMonth = months[now.month - 1];
-    selectedYear = now.year.toString();
-  }
-
-  String? selectedMonth;
-  String? selectedYear;
-
-  final List<String> months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
-  final List<String> years = ["2023", "2024", "2025", "2026", "2027"];
-
-  @override
-  Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.width;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        height: screenHeight > 200 ? 300 : double.infinity,
-        width: MediaQuery.of(context).size.width * 0.3,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 4,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+            const SizedBox(
+              height: 20,
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Select Month & Year",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: selectedMonth,
-              hint: const Text("Select Month"),
               decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[200],
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              items: months.map((String month) {
-                return DropdownMenuItem<String>(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  )),
+              items: months.map((month) {
+                return DropdownMenuItem(
                   value: month,
                   child: Text(month),
                 );
               }).toList(),
-              onChanged: (String? newValue) {
+              onChanged: (value) {
                 setState(() {
-                  selectedMonth = newValue!;
+                  selectedMonth = value!;
+                  _updateParentState();
                 });
               },
+              hint: const Text('Select Month'),
+              isExpanded: true,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<int>(
               value: selectedYear,
-              hint: const Text("Select Year"),
               decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[200],
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              items: years.map((String year) {
-                return DropdownMenuItem<String>(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  )),
+              items: years.map((year) {
+                return DropdownMenuItem(
                   value: year,
-                  child: Text(year),
+                  child: Text(year.toString()),
                 );
               }).toList(),
-              onChanged: (String? newValue) {
+              onChanged: (value) {
                 setState(() {
-                  selectedYear = newValue!;
+                  selectedYear = value!;
+                  _updateParentState();
                 });
               },
+              hint: const Text('Select Year'),
+              isExpanded: true,
             ),
           ],
         ),
@@ -904,6 +1121,7 @@ class GenerateButton extends StatefulWidget {
   final TextEditingController hraRateController;
 
   final TextEditingController hraAmountController;
+  final TextEditingController arrearHraAmountController;
 
   final TextEditingController tiffinAllowanceRateController;
 
@@ -940,6 +1158,7 @@ class GenerateButton extends StatefulWidget {
   final TextEditingController tiffinReimAmountController;
   final TextEditingController educationAmountController;
   final TextEditingController arearOtherAmountController;
+  final TextEditingController arrearBasicWagesAmountController;
   final TextEditingController heavyDutyAmountController;
   final TextEditingController attAmountController;
   final TextEditingController misclEarningController;
@@ -949,7 +1168,7 @@ class GenerateButton extends StatefulWidget {
   final TextEditingController otDaysController;
   final TextEditingController gpaController;
   final TextEditingController unionFundController;
-  final TextEditingController contractLabourwelfarefundController;
+  final TextEditingController contractLabourChildrenwelfarefundController;
   final TextEditingController canteenController;
   final TextEditingController wagesAdvanceController;
   final TextEditingController arrearProfessionaltaxController;
@@ -962,39 +1181,87 @@ class GenerateButton extends StatefulWidget {
   final TextEditingController misclDednController;
   final TextEditingController labourWelfareFundController;
   final TextEditingController otDaysAmountsController;
+  final TextEditingController pfAccountNo;
 
+  // final String selectedMonth;
+  // final String selectedYear;
 
+  final String selectedMonth;
+  final int selectedYear;
 
-
-  const GenerateButton(
-      {super.key,
-      required this.employeeCodeController,
-      required this.nameController,
-      required this.bankNameController,
-      required this.bankAccountNoController,
-      required this.dobController,
-      required this.gradeController,
-      required this.pfAccountNoController,
-      required this.universalAccountNoController,
-      required this.esiNoController,
-      required this.workingDaysController,
-      required this.weeklyOffController,
-      required this.leaveDaysController,
-      required this.phController,
-      required this.basicWagesRateController,
-      required this.basicWagesAmountController,
-      required this.hraRateController,
-      required this.hraAmountController,
-      required this.tiffinAllowanceRateController,
-      required this.tiffinAllowanceAmountController,
-      required this.otherAllowanceRateController,
-      required this.otherAllowanceAmountController,
-      required this.pfAmountController,
-      required this.taxAmountController,
-      required this.esiAmountController,
-      required this.grossEarningsController,
-      required this.grossDeductionsController,
-      required this.netSalaryController, required this.prfRateController, required this.prfAmountController, required this.washRateController, required this.washAmountController, required this.sheRateController, required this.sheAmountController, required this.medRateController, required this.medAmountController, required this.specialRateController, required this.specialAmountController, required this.skillRateController, required this.skillAmountController, required this.tiffinReimRateController, required this.tiffinReimAmountController, required this.educationAmountController, required this.arearOtherAmountController, required this.heavyDutyAmountController, required this.attAmountController, required this.misclEarningController, required this.overtimeAmountController, required this.leaveEncashmentController, required this.pmgkyBenifitController, required this.otDaysController, required this.gpaController, required this.unionFundController, required this.contractLabourwelfarefundController, required this.canteenController, required this.wagesAdvanceController, required this.arrearProfessionaltaxController, required this.cmRelifeFundController, required this.medicalClaimController, required this.benvolentFundController, required this.incomeTaxController, required this.loanRecoveryController, required this.pfLoanInterestController, required this.misclDednController, required this.labourWelfareFundController, required this.otDaysAmountsController});
+  const GenerateButton({
+    Key? key,
+    required this.employeeCodeController,
+    required this.nameController,
+    required this.bankNameController,
+    required this.bankAccountNoController,
+    required this.dobController,
+    required this.gradeController,
+    required this.pfAccountNoController,
+    required this.universalAccountNoController,
+    required this.esiNoController,
+    required this.workingDaysController,
+    required this.weeklyOffController,
+    required this.leaveDaysController,
+    required this.phController,
+    required this.basicWagesRateController,
+    required this.basicWagesAmountController,
+    required this.hraRateController,
+    required this.hraAmountController,
+    required this.tiffinAllowanceRateController,
+    required this.tiffinAllowanceAmountController,
+    required this.otherAllowanceRateController,
+    required this.otherAllowanceAmountController,
+    required this.pfAmountController,
+    required this.taxAmountController,
+    required this.esiAmountController,
+    required this.grossEarningsController,
+    required this.grossDeductionsController,
+    required this.netSalaryController,
+    required this.prfRateController,
+    required this.prfAmountController,
+    required this.washRateController,
+    required this.washAmountController,
+    required this.sheRateController,
+    required this.sheAmountController,
+    required this.medRateController,
+    required this.medAmountController,
+    required this.specialRateController,
+    required this.specialAmountController,
+    required this.skillRateController,
+    required this.skillAmountController,
+    required this.tiffinReimRateController,
+    required this.tiffinReimAmountController,
+    required this.educationAmountController,
+    required this.arearOtherAmountController,
+    required this.heavyDutyAmountController,
+    required this.attAmountController,
+    required this.misclEarningController,
+    required this.overtimeAmountController,
+    required this.leaveEncashmentController,
+    required this.pmgkyBenifitController,
+    required this.otDaysController,
+    required this.gpaController,
+    required this.unionFundController,
+    required this.contractLabourChildrenwelfarefundController,
+    required this.canteenController,
+    required this.wagesAdvanceController,
+    required this.arrearProfessionaltaxController,
+    required this.cmRelifeFundController,
+    required this.medicalClaimController,
+    required this.benvolentFundController,
+    required this.incomeTaxController,
+    required this.loanRecoveryController,
+    required this.pfLoanInterestController,
+    required this.misclDednController,
+    required this.labourWelfareFundController,
+    required this.otDaysAmountsController,
+    required this.selectedMonth,
+    required this.selectedYear,
+    required this.arrearBasicWagesAmountController,
+    required this.arrearHraAmountController,
+    required this.pfAccountNo,
+  }) : super(key: key);
 
   @override
   State<GenerateButton> createState() => _GenerateButtonState();
@@ -1006,28 +1273,7 @@ class _GenerateButtonState extends State<GenerateButton> {
   @override
   void initState() {
     super.initState();
-    DateTime now = DateTime.now();
-    selectedMonth = months[now.month - 1];
-    selectedYear = now.year.toString();
   }
-
-  String? selectedMonth;
-  String? selectedYear;
-  final List<String> months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
-  final List<String> years = ["2023", "2024", "2025", "2026", "2027"];
 
   @override
   Widget build(BuildContext context) {
@@ -1080,37 +1326,36 @@ class _GenerateButtonState extends State<GenerateButton> {
                 grossDeduction: widget.grossDeductionsController.text,
                 netSalary: widget.netSalaryController.text,
                 netSalaryInWord: netSalaryInWords,
-                month: selectedMonth ?? '',
-                year: selectedYear ?? '',
-                prfRate:  widget.prfRateController.text,
-                prfAmount:widget.prfAmountController.text,
+
+                prfRate: widget.prfRateController.text,
+                prfAmount: widget.prfAmountController.text,
                 washAmount: widget.washAmountController.text,
                 washRate: widget.washRateController.text,
                 sheRate: widget.sheRateController.text,
                 sheAmount: widget.sheAmountController.text,
                 medRate: widget.medRateController.text,
-                medAmount:widget.medAmountController.text,
+                medAmount: widget.medAmountController.text,
                 specialRate: widget.specialRateController.text,
                 specialAmount: widget.specialAmountController.text,
                 skillRate: widget.skillRateController.text,
-                skillAmount:widget.skillAmountController.text,
-                tiffinReimRate:widget.tiffinReimRateController.text,
+                skillAmount: widget.skillAmountController.text,
+                tiffinReimRate: widget.tiffinReimRateController.text,
                 tiffinReimAmount: widget.tiffinReimAmountController.text,
-                arearOtherAmount:widget.arearOtherAmountController.text,
+                arearOtherAmount: widget.arearOtherAmountController.text,
                 educationAmount: widget.educationAmountController.text,
-                heavyDutyAmount:widget.heavyDutyAmountController.text,
+                heavyDutyAmount: widget.heavyDutyAmountController.text,
                 attAmount: widget.attAmountController.text,
-                misclEarning:widget.misclEarningController.text,
+                misclEarning: widget.misclEarningController.text,
                 overtimeAmount: widget.overtimeAmountController.text,
                 leaveEncashment: widget.leaveEncashmentController.text,
                 pmgkyBenifit: widget.pmgkyBenifitController.text,
                 otDays: widget.otDaysController.text,
                 gpa: widget.gpaController.text,
                 unionFund: widget.unionFundController.text,
-                contractLabourwelfarefund: widget.contractLabourwelfarefundController.text,
                 canteen: widget.canteenController.text,
                 wagesAdvance: widget.wagesAdvanceController.text,
-                arrearProfessionaltax: widget.arrearProfessionaltaxController.text,
+                arrearProfessionaltax:
+                    widget.arrearProfessionaltaxController.text,
                 cmRelifeFund: widget.cmRelifeFundController.text,
                 medicalClaim: widget.medicalClaimController.text,
                 benvolentFund: widget.benvolentFundController.text,
@@ -1120,6 +1365,15 @@ class _GenerateButtonState extends State<GenerateButton> {
                 misclDedn: widget.misclDednController.text,
                 labourWelfareFund: widget.labourWelfareFundController.text,
                 otDaysAmounts: widget.otDaysAmountsController.text,
+
+                month: widget.selectedMonth,
+                year: widget.selectedYear,
+                arrearBasicWages: widget.arrearBasicWagesAmountController.text,
+                arrearHraAmount: widget.arrearHraAmountController.text,
+                contractLabourChildrenwelfarefund:
+                    widget.contractLabourChildrenwelfarefundController.text,
+
+                // Pass selected year
               ),
             ),
           );
@@ -1131,67 +1385,6 @@ class _GenerateButtonState extends State<GenerateButton> {
             fontWeight: FontWeight.bold,
             color: Colors.white,
             letterSpacing: 1.2,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomSlipSection extends StatelessWidget {
-  final double containerHeightFactor;
-  final VoidCallback navigateToGenerateSlip;
-
-  const CustomSlipSection({
-    super.key,
-    required this.containerHeightFactor,
-    required this.navigateToGenerateSlip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        height: MediaQuery.of(context).size.height * containerHeightFactor,
-        width: MediaQuery.of(context).size.width * 0.47,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Custom Payment Slip',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: navigateToGenerateSlip,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Generate Slip",
-                      style: TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                    // SizedBox(width: 20,),
-                    Icon(Icons.payment, color: Colors.white),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),

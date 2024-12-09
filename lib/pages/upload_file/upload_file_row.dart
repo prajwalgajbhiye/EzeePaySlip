@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:EzeePayslip/pages/payment_slip/employee_enfo.dart';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,17 +13,20 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/widgets.dart' as pw;
+
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 
 class FileUploadSection extends StatefulWidget {
   final double containerHeightFactor;
+  final double containerWidthFactor;
   final String? fileName;
 
   const FileUploadSection({
     super.key,
     required this.containerHeightFactor,
     this.fileName,
+    required this.containerWidthFactor,
   });
 
   @override
@@ -105,14 +109,18 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           "GRADE": getCellValue(row[5]),
           "AADHAAR NO": getCellValue(row[6]),
           "UAN": getCellValue(row[7]),
+          "PF ACCOUNT NUMBER": getCellValue(row[8]),
           "ESI NO": getCellValue(row[9]),
           "BANK NAME": getCellValue(row[10]),
           "BANK A/C NO.": getCellValue(row[11]),
           "DOB": getCellValue(row[12]),
           "OT DAYS": getCellValue(row[15]),
           "WORKING DAYS": getCellValue(row[17]),
+          "WEEKLY OFF": getCellValue(row[19]),
           "BASIC WAGES RATE": getCellValue(row[22]),
+          "ARREAR BASIC WAGES": getCellValue(row[24]),
           "HRA": getCellValue(row[25]),
+          "ARREAR HRA": getCellValue(row[27]),
           "PERF ALLOWANCE": getCellValue(row[28]),
           "WASH ALLOWANCE": getCellValue(row[31]),
           "SHE ALLOWANCE": getCellValue(row[34]),
@@ -124,7 +132,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           "OTHER ALLOWANCE": getCellValue(row[50]),
           "ARREARS OTHER ALLOWANCE": getCellValue(row[52]),
           "EDUCATION ALLOWANCE": getCellValue(row[53]),
-          "HEAVY DUTY ALLOWANCE": getCellValue(row[55]),
+          "HEAVY DUTY ALLOWANCE": getCellValue(row[54]),
           "MISCL ALLOWANCE": getCellValue(row[57]),
           "ATT ALLOWANCE": getCellValue(row[56]),
           "OVERTIME": getCellValue(row[58]),
@@ -165,7 +173,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
       );
     } else if (punchingNumber.isNotEmpty) {
       final emp = employeeData.values.firstWhere(
-        (data) => data['PUNCHING NUMBER'] == punchingNumber,
+            (data) => data['PUNCHING NUMBER'] == punchingNumber,
         orElse: () => {},
       );
       if (emp.isNotEmpty) {
@@ -187,7 +195,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     }
   }
 
-  Future<void> generateAllPaymentSlips(BuildContext context) async {
+  Future<void> generateAllPaymentSlips(BuildContext context, String month, int year) async {
     List<Map<String, dynamic>> employees = employeeData.values.toList();
 
     final pdf = pw.Document();
@@ -195,19 +203,21 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     for (int i = 0; i < employees.length; i += 2) {
       pdf.addPage(
         pw.Page(
+          margin: const pw.EdgeInsets.all(20), // Increase margin on all sides
+
           pageFormat: PdfPageFormat.a4,
           build: (pw.Context context) {
             return pw.Column(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   // First Employee on the Page
-                  if (i < employees.length) buildEmployeeSection(employees[i]),
+                  if (i < employees.length) buildEmployeeSection(employees[i],month, year,),
 
                   pw.SizedBox(height: 20),
 
                   // Second Employee on the Page (if exists)
                   if (i + 1 < employees.length)
-                    buildEmployeeSection(employees[i + 1]),
+                    buildEmployeeSection(employees[i + 1],month, year),
                 ]);
           },
         ),
@@ -241,7 +251,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
 
 // Helper function to build an employee section
 
-  pw.Widget buildEmployeeSection(Map<String, dynamic> employee) {
+  pw.Widget buildEmployeeSection(Map<String, dynamic> employee, String selectedMonth, int selectedYear) {
     String formatDate(String? date) {
       if (date == null || date.isEmpty) {
         return 'N/A';
@@ -296,19 +306,21 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     double skillAllowanceRate = parseDouble(employee['SKILL ALLOWANCE']);
     double tiffinAllowanceRate = parseDouble(employee['TIFFIN ALLOWANCES']);
     double tiffinReimAllowanceRate =
-        parseDouble(employee['TIFFIN REIM ALLOWANCE']);
+    parseDouble(employee['TIFFIN REIM ALLOWANCE']);
     double otherAllowanceRate = parseDouble(employee['OTHER ALLOWANCE']);
     double arrearOtherAllowanceAmount =
-        parseDouble(employee['ARREARS OTHER ALLOWANCE']);
+    parseDouble(employee['ARREARS OTHER ALLOWANCE']);
     double educationAllowanceAmount =
-        parseDouble(employee['EDUCATION ALLOWANCE']);
+    parseDouble(employee['EDUCATION ALLOWANCE']);
     double heavyDutyAllowanceAmount =
-        parseDouble(employee['HEAVY DUTY ALLOWANCE']);
+    parseDouble(employee['HEAVY DUTY ALLOWANCE']);
     double attAllowanceAmount = parseDouble(employee['ATT ALLOWANCE']);
     double misclEarningAmount = parseDouble(employee['MISCL ALLOWANCE']);
     double overtimeAmount = parseDouble(employee['OVERTIME']);
     double leaveEncashmentAmount = parseDouble(employee['LEAVE ENCASHMENT']);
     double pmgkyBenifitAmount = parseDouble(employee['PMGKY'] ?? "00");
+    double arrearBasicWages = parseDouble(employee['ARREAR BASIC WAGES'] ?? "00");
+    double arrearHra = parseDouble(employee['ARREAR HRA'] ?? "00");
 
     // Calculate earnings and deductions for this employee
     double basicWageAmount = basicWageRate * workingDays;
@@ -328,6 +340,8 @@ class _FileUploadSectionState extends State<FileUploadSection> {
 
     // Calculate gross earnings
     double grossEarnings = basicWageAmount +
+        arrearBasicWages+
+        arrearHra+
         hraAmount +
         prfAmount +
         washAllowanceAmount +
@@ -365,11 +379,11 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     double gpa = parseDouble(employee['GPA'] ?? '0');
     double unionFund = parseDouble(employee['UNION FUND'] ?? '0');
     double contractLabourFund =
-        parseDouble(employee['CONTRACT LABOUR CHILDREN WELFARE FUND'] ?? '0');
+    parseDouble(employee['CONTRACT LABOUR CHILDREN WELFARE FUND'] ?? '0');
     double canteen = parseDouble(employee['CANTEEN'] ?? '0');
     double wagesAdvance = parseDouble(employee['WAGES ADVANCE'] ?? '0');
     double arrearProfessionalTax =
-        parseDouble(employee['ARREARS PROFESSIONAL'] ?? '0');
+    parseDouble(employee['ARREARS PROFESSIONAL'] ?? '0');
     double cmReliefFund = parseDouble(employee['CM RELIEF FUND'] ?? '0');
     double medicalClaim = parseDouble(employee['MEDICAL CLAIM'] ?? '0');
     double benvolentFund = parseDouble(employee['BENEVOLENT FUND'] ?? '0');
@@ -378,7 +392,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     double pfLoanInterest = parseDouble(employee['PF LOAN INTEREST'] ?? '0');
     double miscldedn = parseDouble(employee['MISCL DEDN'] ?? '0');
     double labourWelfareFund =
-        parseDouble(employee['LABOUR WELFARE FUND'] ?? '0');
+    parseDouble(employee['LABOUR WELFARE FUND'] ?? '0');
 
     // Calculate gross deductions
     double grossDeductions = providentFund +
@@ -407,30 +421,30 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         children: [
           pw.Text(
             'SATYAM CONSTRUCTION',
-            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(
             'BHANDARA',
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.black),
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
           ),
           pw.RichText(
             text: pw.TextSpan(
               children: [
                 const pw.TextSpan(
                     text: 'Pay Slip for the month of: ',
-                    style: pw.TextStyle(color: PdfColors.black, fontSize: 8)),
+                    style: pw.TextStyle(color: PdfColors.black, fontSize: 9)),
                 pw.TextSpan(
-                    text: DateFormat('MMMM').format(DateTime.now()),
+                    text: selectedMonth,
                     style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                        fontWeight: pw.FontWeight.bold, fontSize: 9)),
                 const pw.TextSpan(
                     text: ' - ',
-                    style: pw.TextStyle(color: PdfColors.black, fontSize: 8)),
+                    style: pw.TextStyle(color: PdfColors.black, fontSize: 9)),
                 pw.TextSpan(
-                    text: "${DateTime.now().year}",
+                    text: "$selectedYear",
                     style: pw.TextStyle(
                         color: PdfColors.black,
-                        fontSize: 8,
+                        fontSize: 9,
                         fontWeight: pw.FontWeight.bold)),
               ],
             ),
@@ -438,52 +452,57 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           pw.SizedBox(height: 10),
           pw.Container(
             // padding: const pw.EdgeInsets.only(left: 2),
-            decoration:
-                pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey)),
+            // decoration:
+            // pw.BoxDecoration(border: pw.Border.all(width:0.5,color: PdfColors.red)),
             child: pw.Column(
+
               children: [
-                _buildRow(
+                pw.Container(decoration: pw.BoxDecoration(
+                    border:
+                    pw.Border.all(width:0.5, color: PdfColors.grey)),child:pw.Column(children: [_buildRow(
                   "Employee Code",
                   employee['EMPLOYEE CODE'] ?? "Not Available",
                   "PF Account No.",
-                  "Not Available",
+                    employee['PF ACCOUNT NUMBER'] ?? "Not Available",
                 ),
-                _buildRow(
-                    "Name",
-                    employee['EMPLOYEE NAME'] ?? "Not Available",
-                    "Date Of Birth",
-                    formatDate(employee['DOB'] ?? "Not Available")
+                  _buildRow(
+                      "Name",
+                      employee['EMPLOYEE NAME'] ?? "Not Available",
+                      "Date Of Birth",
+                      formatDate(employee['DOB'] ?? "Not Available")
                     // employee['DOB'] ?? "Not Available",
-                    ),
-                _buildRow(
-                  "Bank Name",
-                  employee['BANK NAME'] ?? "Not Available",
-                  "Bank A/C No.",
-                  employee['BANK A/C NO.'] ?? "Not Available",
-                ),
-                _buildRow(
-                  "Grade",
-                  employee['GRADE'] ?? "Not Available",
-                  "Universal Account No.",
-                  employee['UAN'] ?? "Not Available",
-                ),
-                _buildRow(
-                  "ESI",
-                  employee['ESI NO'] ?? "Not Available",
-                  "",
-                  "",
-                ),
+                  ),
+                  _buildRow(
+                    "Bank Name",
+                    employee['BANK NAME'] ?? "Not Available",
+                    "Bank A/C No.",
+                    employee['BANK A/C NO.'] ?? "Not Available",
+                  ),
+                  _buildRow(
+                    "Grade",
+                    employee['GRADE'] ?? "Not Available",
+                    "Universal Account No.",
+                    employee['UAN'] ?? "Not Available",
+                  ),
+                  _buildRow(
+                    "ESI",
+                    employee['ESI NO'] ?? "Not Available",
+                    "",
+                    "",
+                  ),]) ),
+
+
                 pw.SizedBox(height: 10),
                 _buildPdfRowWithFourColumns(
                     "Attendance Details:",
                     "Working Days",
                     employee['WORKING DAYS'] ?? "0",
                     "Weekly Off",
-                    "",
+                    employee['WEEKLY OFF'] ?? "0",
                     "Leave Days",
-                    "",
+                    employee['LEAVE DAYS'] ?? "0",
                     "PH",
-                    ""),
+                    employee['PH'] ?? "0"),
                 pw.SizedBox(height: 10),
                 _earningRow(
                   "Earning",
@@ -493,190 +512,204 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                   "Amount",
                 ),
                 pw.Container(
-                    // alignment: pw.Alignment.topCenter,
-                    child: pw.Row(
-                        // mainAxisAlignment: pw.MainAxisAlignment.start,
+                    decoration: pw.BoxDecoration(
+                        border:
+                        pw.Border.all(width: 0.5, color: PdfColors.grey)),
+                  // alignment: pw.Alignment.topCenter,
+                    child: pw.Column(children: [pw.Container(decoration: const pw.BoxDecoration(
+                        border: pw.Border(bottom: pw.BorderSide(width:0.5,color: PdfColors.grey,))),child:pw.Row(
+                      // mainAxisAlignment: pw.MainAxisAlignment.start,
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                      pw.Column(children: [
-                        _earningPaymentRow(
-                          "Basic wages",
-                          employee['BASIC WAGES RATE'] ?? "",
-                          (basicWageAmount).toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "HRA",
-                          hraRate.toStringAsFixed(2),
-                          hraAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "PRF Allowance",
-                          prfAllowanceRate.toStringAsFixed(2),
-                          prfAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Wash Allowance",
-                          washAllowanceRate.toStringAsFixed(2),
-                          washAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "she Allowance",
-                          sheAllowanceRate.toStringAsFixed(2),
-                          sheAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Medical Allowance",
-                          medAllowanceRate.toStringAsFixed(2),
-                          medAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Special Allowance",
-                          specialAllowanceRate.toStringAsFixed(2),
-                          specialAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Skill Allowance",
-                          skillAllowanceRate.toStringAsFixed(2),
-                          skillAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Tiffin Allowance",
-                          tiffinAllowanceRate.toStringAsFixed(2),
-                          tiffinAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Tiffin Reim Allowance",
-                          tiffinReimAllowanceRate.toStringAsFixed(2),
-                          tiffinReimAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Other Allowance",
-                          otherAllowanceRate.toStringAsFixed(2),
-                          otherAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Arear Other Allowance",
-                          "",
-                          arrearOtherAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Education Allowance",
-                          "",
-                          educationAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Heavy Duty Allowance",
-                          "",
-                          heavyDutyAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "att Allowance",
-                          "",
-                          attAllowanceAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "MISCL Earning",
-                          "",
-                          misclEarningAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Overtime",
-                          "",
-                          overtimeAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Leave Encashment",
-                          "",
-                          leaveEncashmentAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "PMGKY Benifit",
-                          "",
-                          pmgkyBenifitAmount.toStringAsFixed(2),
-                        ),
-                        _earningPaymentRow(
-                          "Ot Days",
-                          otDays.toStringAsFixed(2),
-                          ot.toStringAsFixed(2),
-                        ),
-                      ]),
-                      pw.Column(
-                          mainAxisAlignment: pw.MainAxisAlignment.start,
-                          children: [
-                            _deductionPaymentRow(
-                              "Provident Fund",
-                              providentFund.toStringAsFixed(2),
+                          pw.Column(children: [
+                            _earningPaymentRow(
+                              "Basic wages",
+                              employee['BASIC WAGES RATE'] ?? "",
+                              (basicWageAmount).toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Professional Tax",
-                              professionalTax.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Arrear Basic wages",
+                             "",
+                              (arrearBasicWages).toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "GPA",
-                              gpa.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "HRA",
+                              hraRate.toStringAsFixed(2),
+                              hraAmount.toStringAsFixed(2),
+                            ),_earningPaymentRow(
+                              "Arrear HRA",
+                              "",
+                              arrearHra.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Union Fund",
-                              unionFund.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "PRF Allowance",
+                              prfAllowanceRate.toStringAsFixed(2),
+                              prfAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Contract Labour Welfare Fund ",
-                              contractLabourFund.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Wash Allowance",
+                              washAllowanceRate.toStringAsFixed(2),
+                              washAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Canteen",
-                              canteen.toString(),
+                            _earningPaymentRow(
+                              "she Allowance",
+                              sheAllowanceRate.toStringAsFixed(2),
+                              sheAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Wages Advance",
-                              wagesAdvance.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Medical Allowance",
+                              medAllowanceRate.toStringAsFixed(2),
+                              medAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Arrear Professional Tax ",
-                              arrearProfessionalTax.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Special Allowance",
+                              specialAllowanceRate.toStringAsFixed(2),
+                              specialAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow("Cm Relief Fund",
-                                cmReliefFund.toStringAsFixed(2)),
-                            _deductionPaymentRow(
-                              "Medical Claim",
-                              medicalClaim.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Skill Allowance",
+                              skillAllowanceRate.toStringAsFixed(2),
+                              skillAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Benevolent Fund ",
-                              benvolentFund.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Tiffin Allowance",
+                              tiffinAllowanceRate.toStringAsFixed(2),
+                              tiffinAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Income Tax",
-                              incomeTax.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Tiffin Reim Allowance",
+                              tiffinReimAllowanceRate.toStringAsFixed(2),
+                              tiffinReimAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Loan Recovery",
-                              loanRecovery.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Other Allowance",
+                              otherAllowanceRate.toStringAsFixed(2),
+                              otherAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Pf Loan Interest",
-                              pfLoanInterest.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Arear Other Allowance",
+                              "",
+                              arrearOtherAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "MISCL DEDN",
-                              miscldedn.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Education Allowance",
+                              "",
+                              educationAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Labour Welfare fund",
-                              labourWelfareFund.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "Heavy Duty Allowance",
+                              "",
+                              heavyDutyAllowanceAmount.toStringAsFixed(2),
                             ),
-                            _deductionPaymentRow(
-                              "Employee State Insurance",
-                              esi.toStringAsFixed(2),
+                            _earningPaymentRow(
+                              "att Allowance",
+                              "",
+                              attAllowanceAmount.toStringAsFixed(2),
+                            ),
+                            _earningPaymentRow(
+                              "MISCL Earning",
+                              "",
+                              misclEarningAmount.toStringAsFixed(2),
+                            ),
+                            _earningPaymentRow(
+                              "Overtime",
+                              "",
+                              overtimeAmount.toStringAsFixed(2),
+                            ),
+                            _earningPaymentRow(
+                              "Leave Encashment",
+                              "",
+                              leaveEncashmentAmount.toStringAsFixed(2),
+                            ),
+                            _earningPaymentRow(
+                              "PMGKY Benifit",
+                              "",
+                              pmgkyBenifitAmount.toStringAsFixed(2),
+                            ),
+                            _earningPaymentRow(
+                              "Ot Days",
+                              otDays.toStringAsFixed(2),
+                              ot.toStringAsFixed(2),
                             ),
                           ]),
-                    ])),
-                _grossEarningRow(
-                    "Gross Earning",
-                    grossEarnings.toStringAsFixed(2),
-                    "Gross Deduction",
-                    grossDeductions.toStringAsFixed(2)),
-                _netSalaryRow("Net Salary :", netSalary),
+                          pw.Column(
+                              mainAxisAlignment: pw.MainAxisAlignment.start,
+                              children: [
+                                _deductionPaymentRow(
+                                  "Provident Fund",
+                                  providentFund.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Professional Tax",
+                                  professionalTax.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "GPA",
+                                  gpa.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Union Fund",
+                                  unionFund.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Contract Labour Welfare Fund ",
+                                  contractLabourFund.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Canteen",
+                                  canteen.toString(),
+                                ),
+                                _deductionPaymentRow(
+                                  "Wages Advance",
+                                  wagesAdvance.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Arrear Professional Tax ",
+                                  arrearProfessionalTax.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow("Cm Relief Fund",
+                                    cmReliefFund.toStringAsFixed(2)),
+                                _deductionPaymentRow(
+                                  "Medical Claim",
+                                  medicalClaim.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Benevolent Fund ",
+                                  benvolentFund.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Income Tax",
+                                  incomeTax.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Loan Recovery",
+                                  loanRecovery.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Pf Loan Interest",
+                                  pfLoanInterest.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "MISCL DEDN",
+                                  miscldedn.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Labour Welfare fund",
+                                  labourWelfareFund.toStringAsFixed(2),
+                                ),
+                                _deductionPaymentRow(
+                                  "Employee State Insurance",
+                                  esi.toStringAsFixed(2),
+                                ),
+                              ]),
+                        ]) ),
+                      _grossEarningRow(
+                        "Gross Earning",
+                        grossEarnings.toStringAsFixed(2),
+                        "Gross Deduction",
+                        grossDeductions.toStringAsFixed(2)),
+                      _netSalaryRow("Net Salary :", netSalary),])),
+
                 _amountInWord(
                   "Amount in Words : ",
                   netSalary,
@@ -771,60 +804,43 @@ class _FileUploadSectionState extends State<FileUploadSection> {
   }
 
   pw.Widget _earningRow(
-    String title1,
-    String title2,
-    String title3,
-    String title4,
-    String title5,
-  ) {
+      String title1,
+      String title2,
+      String title3,
+      String title4,
+      String title5,
+      ) {
     return pw.Column(
       children: [
         pw.Row(
           children: [
             pw.Expanded(
-              flex: 4,
+              flex: 6,
               child: pw.Container(
                 padding: const pw.EdgeInsets.only(left: 2),
                 alignment: pw.Alignment.center,
                 decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.grey)),
+                    border: pw.Border.all(width:0.5,color: PdfColors.grey)),
                 child: pw.Text(
                   title1,
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
               ),
             ),
             pw.Expanded(
-              flex: 2,
+              flex: 3,
               child: pw.Container(
                 alignment: pw.Alignment.center,
                 decoration: const pw.BoxDecoration(
                     border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey),
-                        top: pw.BorderSide(color: PdfColors.grey),
-                        right: pw.BorderSide(color: PdfColors.grey))),
+                        bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
                 child: pw.Text(
                   title2,
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                ),
-              ),
-            ),
-            pw.Expanded(
-              flex: 2,
-              child: pw.Container(
-                alignment: pw.Alignment.center,
-                decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey),
-                        top: pw.BorderSide(color: PdfColors.grey),
-                        // bottom: BorderSide(color: Colors.grey),
-                        right: pw.BorderSide(color: PdfColors.grey))),
-                child: pw.Text(
-                  title3,
-                  style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
               ),
             ),
@@ -834,33 +850,50 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 alignment: pw.Alignment.center,
                 decoration: const pw.BoxDecoration(
                     border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey),
-                        top: pw.BorderSide(color: PdfColors.grey),
+                        bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        top: pw.BorderSide(width:0.5,color: PdfColors.grey),
                         // bottom: BorderSide(color: Colors.grey),
-                        right: pw.BorderSide(color: PdfColors.grey))),
+                        right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
                 child: pw.Text(
-                  title4,
+                  title3,
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
               ),
             ),
             pw.Expanded(
-              flex: 2,
+              flex: 9,
+              child: pw.Container(
+                alignment: pw.Alignment.center,
+                decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                        bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        // bottom: BorderSide(color: Colors.grey),
+                        right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
+                child: pw.Text(
+                  title4,
+                  style:
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+            ),
+            pw.Expanded(
+              flex: 4,
               child: pw.Container(
                 // margin: pw.EdgeInsets.only(right: 2),
 
                 alignment: pw.Alignment.center,
                 decoration: const pw.BoxDecoration(
                     border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey),
-                        top: pw.BorderSide(color: PdfColors.grey),
+                        bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                        top: pw.BorderSide(width:0.5,color: PdfColors.grey),
                         // bottom: BorderSide(color: Colors.grey),
-                        right: pw.BorderSide(color: PdfColors.grey))),
+                        right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
                 child: pw.Text(
                   title5,
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
               ),
             ),
@@ -882,49 +915,51 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     return pw.Container(
       // margin: pw.EdgeInsets.only(left: 2),
       // color: PdfColors.red,
-      width: 275.3, // Ensures that the width is bounded
+      width: 277.65, // Ensures that the width is bounded
       child: pw.Row(
         children: [
           pw.Expanded(
-            flex: 4,
+            flex: 6,
             child: pw.Container(
               padding: const pw.EdgeInsets.only(left: 2),
               alignment: pw.Alignment.centerLeft,
-              decoration: const pw.BoxDecoration(
-                  border: pw.Border(
-                left: pw.BorderSide(color: PdfColors.grey),
-              )),
+              // decoration: const pw.BoxDecoration(
+              //     border: pw.Border(
+              //       left: pw.BorderSide(width:0.5,color: PdfColors.blue),
+              //     )),
               child: pw.Text(
                 title1,
                 style: const pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                 ),
               ),
             ),
           ),
           pw.Expanded(
-            flex: 2,
+            flex: 3,
             child: pw.Container(
               alignment: pw.Alignment.center,
               child: pw.Text(
                 title2,
                 style: const pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                 ),
               ),
             ),
           ),
           pw.Expanded(
-            flex: 2,
+            flex: 4,
             child: pw.Container(
-              alignment: pw.Alignment.center,
+              padding: pw.EdgeInsets.symmetric(horizontal: 2),
+
+              alignment: pw.Alignment.centerRight,
               decoration: const pw.BoxDecoration(
                   border:
-                      pw.Border(right: pw.BorderSide(color: PdfColors.grey))),
+                  pw.Border(right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
               child: pw.Text(
                 title3,
                 style: const pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                 ),
               ),
             ),
@@ -943,37 +978,38 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     }
     return pw.Container(
       // color: PdfColors.blue,
-      width: 205.5, // Ensures that the width is bounded
+      width: 277.5, // Ensures that the width is bounded
       child: pw.Row(
         children: [
           pw.Expanded(
-            flex: 4,
+            flex: 9,
             child: pw.Container(
               padding: const pw.EdgeInsets.only(left: 2),
               alignment: pw.Alignment.centerLeft,
               decoration: const pw.BoxDecoration(
                   border: pw.Border(
-                left: pw.BorderSide(color: PdfColors.grey),
-              )),
+                    left: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                  )),
               child: pw.Text(
                 title4,
                 style: const pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                 ),
               ),
             ),
           ),
           pw.Expanded(
-            flex: 2,
+            flex: 4,
             child: pw.Container(
-              alignment: pw.Alignment.center,
+              padding: pw.EdgeInsets.symmetric(horizontal: 2),
+              alignment: pw.Alignment.centerRight,
               // decoration: const pw.BoxDecoration(
               //     border:
-              //         pw.Border(right: pw.BorderSide(color: PdfColors.grey))),
+              //         pw.Border(right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
               child: pw.Text(
                 title5,
                 style: const pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                 ),
               ),
             ),
@@ -984,24 +1020,30 @@ class _FileUploadSectionState extends State<FileUploadSection> {
   }
 
   pw.Widget _grossEarningRow(
-    String title1,
-    String title2,
-    String title3,
-    String title4,
-  ) {
-    return pw.Row(
+      String title1,
+      String title2,
+      String title3,
+      String title4,
+      ) {
+    return pw.Container(
+        margin: const pw.EdgeInsets.all(1),
+        decoration: pw.BoxDecoration(
+
+            border: pw.Border.all(width:0.5, color: PdfColors.grey)),
+        child: pw.Row(
       children: [
         pw.Expanded(
-          flex: 6,
+          flex: 9,
           child: pw.Container(
             // width: MediaQuery.of(context).size.width*0.2,
             padding: const pw.EdgeInsets.only(left: 2),
-            decoration:
-                pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey)),
+            decoration: const pw.BoxDecoration(
+                border:
+                pw.Border(right: pw.BorderSide(width: 0.5,color: PdfColors.grey))),
             child: pw.Text(
               title1,
               style: pw.TextStyle(
-                fontSize: 8,
+                fontSize: 9,
                 color: PdfColors.black,
                 fontWeight: pw.FontWeight.bold,
               ),
@@ -1009,20 +1051,44 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           ),
         ),
         pw.Expanded(
-          flex: 2,
+          flex: 4,
           child: pw.Container(
-            alignment: pw.Alignment.center,
+            padding: pw.EdgeInsets.symmetric(horizontal: 1),
+
+            alignment: pw.Alignment.centerRight,
             decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(color: PdfColors.grey),
-                    top: pw.BorderSide(color: PdfColors.grey),
-                    right: pw.BorderSide(color: PdfColors.grey))),
+
+                    right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
             child: pw.SizedBox(
               // color: Colors.grey,
               child: pw.Text(
                 title2,
                 style: pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
+                  color: PdfColors.black,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Container(width: 10),
+        pw.Expanded(
+          flex: 9,
+          child: pw.Container(
+            padding: const pw.EdgeInsets.only(left: 2),
+            decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                    // bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                    // top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                    right: pw.BorderSide(width:0.5,color: PdfColors.grey))),
+            child: pw.SizedBox(
+              // color: Colors.blueAccent,
+              child: pw.Text(
+                title3,
+                style: pw.TextStyle(
+                  fontSize: 9,
                   color: PdfColors.black,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -1034,41 +1100,20 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         pw.Expanded(
           flex: 4,
           child: pw.Container(
-            padding: const pw.EdgeInsets.only(left: 2),
-            decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                    bottom: pw.BorderSide(color: PdfColors.grey),
-                    top: pw.BorderSide(color: PdfColors.grey),
-                    right: pw.BorderSide(color: PdfColors.grey))),
-            child: pw.SizedBox(
-              // color: Colors.blueAccent,
-              child: pw.Text(
-                title3,
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  color: PdfColors.black,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-        // Container(width: 10),
-        pw.Expanded(
-          flex: 2,
-          child: pw.Container(
-            alignment: pw.Alignment.center,
+            padding: pw.EdgeInsets.symmetric(horizontal: 1),
+
+            alignment: pw.Alignment.centerRight,
 
             decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(color: PdfColors.grey),
-                    top: pw.BorderSide(color: PdfColors.grey),
-                    right: pw.BorderSide(color: PdfColors.grey))),
+
+                    // right: pw.BorderSide(width:0.5,color: PdfColors.grey)
+                )),
             // color: Colors.orange,
             child: pw.Text(
               title4,
               style: pw.TextStyle(
-                fontSize: 8,
+                fontSize: 9,
                 color: PdfColors.black,
                 fontWeight: pw.FontWeight.bold,
               ),
@@ -1077,7 +1122,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         ),
         // Container(width: 10),
       ],
-    );
+    ));
   }
 
 // Define the net salary rounding logic outside of the widget constructors
@@ -1085,6 +1130,8 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     // Round up to the next integer and return as int
     return value.ceil();
   }
+
+
 
 // Function to generate the net salary row in the PDF
   pw.Widget _netSalaryRow(String title1, double netSalary) {
@@ -1098,9 +1145,9 @@ class _FileUploadSectionState extends State<FileUploadSection> {
             padding: const pw.EdgeInsets.only(left: 2),
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.grey),
-                left: pw.BorderSide(color: PdfColors.grey),
-                right: pw.BorderSide(color: PdfColors.grey),
+                // bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                // left: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                // right: pw.BorderSide(width:0.5,color: PdfColors.grey),
               ),
             ),
             child: pw.Row(
@@ -1108,7 +1155,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 pw.Text(
                   title1,
                   style: pw.TextStyle(
-                    fontSize: 8,
+                    fontSize: 9,
                     color: PdfColors.black,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -1116,9 +1163,9 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 2),
                   child: pw.Text(
-                    roundedNetSalary.toString(), // Display rounded net salary
+                    roundedNetSalary.toStringAsFixed(2), // Display rounded net salary
                     style: pw.TextStyle(
-                      fontSize: 8,
+                      fontSize: 9,
                       color: PdfColors.black,
                       fontWeight: pw.FontWeight.bold,
                     ),
@@ -1149,7 +1196,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                   pw.Text(
                     title1,
                     style: pw.TextStyle(
-                      fontSize: 8,
+                      fontSize: 9,
                       color: PdfColors.black,
                       fontWeight: pw.FontWeight.bold,
                     ),
@@ -1160,7 +1207,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                       "Rupees ${convertNumberToWords(roundedNetSalary.toDouble())} only",
                       // Convert to double here
                       style: pw.TextStyle(
-                        fontSize: 8,
+                        fontSize: 9,
                         color: PdfColors.black,
                         fontWeight: pw.FontWeight.bold,
                       ),
@@ -1176,16 +1223,16 @@ class _FileUploadSectionState extends State<FileUploadSection> {
   }
 
   pw.Widget _buildPdfRowWithFourColumns(
-    String title,
-    String title1,
-    String value1,
-    String title2,
-    String value2,
-    String title3,
-    String value3,
-    String title4,
-    String value4,
-  ) {
+      String title,
+      String title1,
+      String value1,
+      String title2,
+      String value2,
+      String title3,
+      String value3,
+      String title4,
+      String value4,
+      ) {
     return pw.Row(
       children: [
         pw.Expanded(
@@ -1194,25 +1241,25 @@ class _FileUploadSectionState extends State<FileUploadSection> {
             padding: const pw.EdgeInsets.only(left: 2),
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                  right: pw.BorderSide(color: PdfColors.grey),
-                  top: pw.BorderSide(color: PdfColors.grey),
-                  bottom: pw.BorderSide(color: PdfColors.grey),
-                  left: pw.BorderSide(color: PdfColors.grey)),
+                  right: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                  top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                  bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                  left: pw.BorderSide(width:0.5,color: PdfColors.grey)),
             ),
             child: pw.Text(
               title,
-              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
             ),
           ),
         ),
         pw.Expanded(
-          flex: 6,
+          flex: 8,
           child: pw.Container(
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                right: pw.BorderSide(color: PdfColors.grey),
-                top: pw.BorderSide(color: PdfColors.grey),
-                bottom: pw.BorderSide(color: PdfColors.grey),
+                right: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
               ),
             ),
             child: pw.Row(
@@ -1221,9 +1268,9 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 pw.Text(
                   "$title1: ",
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
-                pw.Text(value1, style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(value1, style: const pw.TextStyle(fontSize: 9)),
               ],
             ),
           ),
@@ -1233,9 +1280,9 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           child: pw.Container(
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                right: pw.BorderSide(color: PdfColors.grey),
-                top: pw.BorderSide(color: PdfColors.grey),
-                bottom: pw.BorderSide(color: PdfColors.grey),
+                right: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
               ),
             ),
             child: pw.Row(
@@ -1244,21 +1291,21 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 pw.Text(
                   "$title2: ",
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
-                pw.Text(value2, style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(value2, style: const pw.TextStyle(fontSize: 9)),
               ],
             ),
           ),
         ),
         pw.Expanded(
-          flex: 6,
+          flex: 4,
           child: pw.Container(
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                right: pw.BorderSide(color: PdfColors.grey),
-                top: pw.BorderSide(color: PdfColors.grey),
-                bottom: pw.BorderSide(color: PdfColors.grey),
+                right: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
               ),
             ),
             child: pw.Row(
@@ -1267,31 +1314,31 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 pw.Text(
                   "$title3: ",
                   style:
-                      pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                  pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ),
-                pw.Text(value3, style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(value3, style: const pw.TextStyle(fontSize: 9)),
               ],
             ),
           ),
         ),
         pw.Expanded(
-            flex: 6,
+            flex: 5,
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                   border: pw.Border(
-                right: pw.BorderSide(color: PdfColors.grey),
-                top: pw.BorderSide(color: PdfColors.grey),
-                bottom: pw.BorderSide(color: PdfColors.grey),
-              )),
+                    right: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                    top: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                    bottom: pw.BorderSide(width:0.5,color: PdfColors.grey),
+                  )),
               child: pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
                   pw.Text(
                     "$title4: ",
                     style: pw.TextStyle(
-                        fontSize: 8, fontWeight: pw.FontWeight.bold),
+                        fontSize: 9, fontWeight: pw.FontWeight.bold),
                   ),
-                  pw.Text(value4, style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(value4, style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
             )),
@@ -1300,11 +1347,11 @@ class _FileUploadSectionState extends State<FileUploadSection> {
   }
 
   pw.Widget _buildRow(
-    String title1,
-    String value1,
-    String title2,
-    String value2,
-  ) {
+      String title1,
+      String value1,
+      String title2,
+      String value2,
+      ) {
     return pw.Column(
       children: [
         pw.Padding(
@@ -1320,7 +1367,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                         child: pw.Text(
                           title1,
                           style: pw.TextStyle(
-                            fontSize: 8,
+                            fontSize: 9,
                             color: PdfColors.black,
                             fontWeight: pw.FontWeight.bold,
                           ),
@@ -1331,7 +1378,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                           child: pw.Text(
                             ":",
                             style: const pw.TextStyle(
-                                fontSize: 8, color: PdfColors.black),
+                                fontSize: 9, color: PdfColors.black),
                           ),
                         ),
                       ],
@@ -1340,14 +1387,14 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 ),
                 pw.Container(width: 10),
                 pw.Flexible(
-                    flex: 6,
+                    flex: 8,
                     child: pw.Row(
                       children: [
                         pw.SizedBox(
                           child: pw.Text(
                             value1,
                             style: const pw.TextStyle(
-                                fontSize: 8, color: PdfColors.black),
+                                fontSize: 9, color: PdfColors.black),
                           ),
                         ),
                       ],
@@ -1362,7 +1409,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                         child: pw.Text(
                           title2,
                           style: pw.TextStyle(
-                            fontSize: 8,
+                            fontSize: 9,
                             color: PdfColors.black,
                             fontWeight: pw.FontWeight.bold,
                           ),
@@ -1373,7 +1420,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                           child: pw.Text(
                             ":",
                             style: const pw.TextStyle(
-                                fontSize: 8, color: PdfColors.black),
+                                fontSize: 9, color: PdfColors.black),
                           ),
                         ),
                       ],
@@ -1387,7 +1434,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                     child: pw.Text(
                       value2,
                       style: const pw.TextStyle(
-                          fontSize: 8, color: PdfColors.black),
+                          fontSize: 9, color: PdfColors.black),
                     ),
                   ),
                 ),
@@ -1399,16 +1446,23 @@ class _FileUploadSectionState extends State<FileUploadSection> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
     return Row(
       children: [
         Expanded(
           child: Container(
-            height: MediaQuery.of(context).size.height *
+            height: isAndroid
+                ? MediaQuery.of(context).size.height * 0.5
+                : MediaQuery.of(context).size.height *
                 widget.containerHeightFactor,
-            width: MediaQuery.of(context).size.width * 0.47,
+            width: isAndroid
+                ? MediaQuery.of(context).size.width * 0.4
+                : MediaQuery.of(context).size.width *
+                widget.containerWidthFactor,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: isAndroid ? Colors.red : Colors.grey.shade200,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -1430,8 +1484,10 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 Text(fileName ?? 'No file selected',
                     style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 10),
-
-                Text("Please ensure the file name is always set to 'Sheet1'.",style: TextStyle(color: Colors.red.shade300),)
+                Text(
+                  "Please ensure the file name is always set to 'Sheet1'.",
+                  style: TextStyle(color: Colors.red.shade300),
+                )
               ],
             ),
           ),
@@ -1443,7 +1499,8 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           child: Container(
             height: MediaQuery.of(context).size.height *
                 widget.containerHeightFactor,
-            width: MediaQuery.of(context).size.width * 0.47,
+            width:
+            MediaQuery.of(context).size.width * widget.containerWidthFactor,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
@@ -1460,19 +1517,97 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: employeeCodeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Employee Code',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: "Employee Code",
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                    floatingLabelStyle: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    hintText: 'Enter Employee Code',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    // prefixIcon: Icon(Icons.edit_note_sharp, color: Colors.teal),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey.shade800, width: 2),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey[500]!),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white70,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
                   ),
                 ),
+                // TextField(
+                //   controller: employeeCodeController,
+                //   decoration: const InputDecoration(
+                //     labelText: 'Enter Employee Code',
+                //     border: OutlineInputBorder(),
+                //   ),
+                // ),
                 const SizedBox(height: 10),
+
                 TextField(
                   controller: punchingNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Punching Number',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: "Punching Number",
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                    floatingLabelStyle: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    hintText: 'Enter Punching Number',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    // prefixIcon: Icon(Icons.edit_note_sharp, color: Colors.teal),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey.shade800, width: 2),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: BorderSide(color: Colors.grey[500]!),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white70,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
                   ),
                 ),
+
+                // TextField(
+                //   controller: punchingNumberController,
+                //   decoration: const InputDecoration(
+                //     labelText: 'Enter Punching Number',
+                //     border: OutlineInputBorder(),
+                //   ),
+                // ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1494,7 +1629,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                             Text(
                               "Enter",
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              TextStyle(color: Colors.white, fontSize: 15),
                             ),
                             // SizedBox(width: 20,),
                             Icon(Icons.touch_app, color: Colors.white),
@@ -1509,8 +1644,18 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                       flex: 2,
                       child: ElevatedButton(
                         onPressed: () {
-                          generateAllPaymentSlips(
-                              context); // Pass `context` from the widget tree here
+
+
+                          showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => MonthYearSelector(
+                                onSubmit: (selectedMonth, selectedYear) async {
+                                  await generateAllPaymentSlips(context, selectedMonth, int.parse(selectedYear));
+                                },
+                              )
+                          );
+                          // Pass `context` from the widget tree here
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
@@ -1525,10 +1670,10 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                             Text(
                               "Generate All Employees Payment Slip",
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              TextStyle(color: Colors.white, fontSize: 15),
                             ),
                             // SizedBox(width: 20,),
-                            Icon(Icons.payment, color: Colors.white),
+                            Icon(Icons.download, color: Colors.white),
                           ],
                         ),
                       ),
@@ -1543,3 +1688,220 @@ class _FileUploadSectionState extends State<FileUploadSection> {
     );
   }
 }
+
+
+
+
+
+
+
+
+class MonthYearSelector extends StatefulWidget {
+  final Function(String, String) onSubmit;
+
+  const MonthYearSelector({Key? key, required this.onSubmit}) : super(key: key);
+
+  @override
+  State<MonthYearSelector> createState() => _MonthYearSelectorState();
+}
+
+class _MonthYearSelectorState extends State<MonthYearSelector> {
+  final List<String> months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
+
+  late String selectedMonth;
+  late String selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    DateTime now = DateTime.now();
+    selectedMonth = months[now.month - 1];
+    selectedYear = now.year.toString();
+  }
+
+  void _changeMonth(bool isNext) {
+    int currentIndex = months.indexOf(selectedMonth);
+    setState(() {
+      if (isNext) {
+        selectedMonth = months[(currentIndex + 1) % months.length];
+      } else {
+        selectedMonth = months[(currentIndex - 1 + months.length) % months.length];
+      }
+    });
+  }
+
+  void _changeYear(bool isNext) {
+    setState(() {
+      int currentYear = int.parse(selectedYear);
+      selectedYear = (isNext ? currentYear + 1 : currentYear - 1).toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Select Month and Year",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          // Month and Year Selector
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildSelector(
+                context: context,
+                label: "Month",
+                value: selectedMonth,
+                items: months,
+                onNext: () => _changeMonth(true),
+                onPrevious: () => _changeMonth(false),
+                onChanged: (value) {
+                  setState(() {
+                    selectedMonth = value!;
+                  });
+                },
+              ),
+              _buildSelector(
+                context: context,
+                label: "Year",
+                value: selectedYear,
+                items: List.generate(
+                  20,
+                      (index) => (DateTime.now().year - 10 + index).toString(),
+                ),
+                onNext: () => _changeYear(true),
+                onPrevious: () => _changeYear(false),
+                onChanged: (value) {
+                  setState(() {
+                    selectedYear = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal, // Button color
+                    foregroundColor: Colors.white, // Text color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await widget.onSubmit(selectedMonth, selectedYear);
+                    Navigator.pop(context); // Close the modal after submission
+                  },
+                  child: const Text("Submit"),
+                ),
+              ),
+              SizedBox(width: 20,),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal, // Button color
+                    foregroundColor: Colors.white, // Text color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelector({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required List<String> items,
+    required VoidCallback onNext,
+    required VoidCallback onPrevious,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 200,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_left, size: 24),
+                onPressed: onPrevious,
+              ),
+              DropdownButton<String>(
+                value: value,
+                underline: const SizedBox(),
+                items: items.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  );
+                }).toList(),
+                onChanged: onChanged,
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_right, size: 24),
+                onPressed: onNext,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+
+
+

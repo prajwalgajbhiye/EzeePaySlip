@@ -74,62 +74,63 @@ class EmployeeInfoDisplayPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => GeneratePaySlip(
-                        employeeCode: employeeData['EMPLOYEE CODE'] ?? '',
-                        name: employeeData['EMPLOYEE NAME'] ?? '',
-                        bankName: employeeData['BANK NAME'] ?? '',
-                        grade: employeeData['GRADE'] ?? '',
-                        esi: employeeData['ESI NO'] ?? '',
-                        pfAccountNo: employeeData['UAN'] ?? '',
-                        dateOfBirth: formatDate(employeeData['DOB'] ?? ''),
-                        bankAccountNo: employeeData['BANK A/C NO.'] ?? '',
-                        universalAccountNo: employeeData['UAN'] ?? '',
-                        workingDays: employeeData['WORKING DAYS'] ?? '',
-                        basicWagesRate: employeeData['BASIC WAGES RATE'] ?? '',
-                        tiffinAllowance: employeeData['TIFFIN ALLOWANCES'] ??
-                            '',
-                        hra: employeeData['HRA'] ?? '',
-                        washAllowance: employeeData['WASH ALLOWANCE'] ?? '',
-                        medAllowance: employeeData['MED ALLOWANCE'] ?? '',
-                        sheAllowance: employeeData['SHE ALLOWANCE'] ?? '',
-                        prfAllowance: employeeData['PERF ALLOWANCE'] ?? '',
-                        tiffinReimAllowance:
-                            employeeData['TIFFIN REIM ALLOWANCE'] ?? '',
-                        specialAllowance: employeeData['SPECIAL ALLOWANCE'] ??
-                            '',
-                        skillAllowance: employeeData['SKILL ALLOWANCE'] ?? '',
-                        arearOtherAllowance:
-                            employeeData['ARREARS OTHER ALLOWANCE'] ?? '',
-                        educationAllowance:
-                            employeeData['EDUCATION ALLOWANCE'] ?? '',
-                        heavyDutyAllowance:
-                            employeeData['HEAVY DUTY ALLOWANCE'] ?? '',
-                        attAllowance: employeeData['ATT ALLOWANCE'] ?? '',
-                        misclEarning: employeeData['MISCL ALLOWANCE'] ?? '',
-                        overtimeRate: employeeData['OVERTIME'] ?? '',
-                        leaveEncasment: employeeData['LEAVE ENCASHMENT'] ?? '',
-                        pmgkyBenifitRate: employeeData['PMGKY'] ?? '',
-                        gpa: employeeData['GPA'] ?? '',
-                        unionFund: employeeData['UNION FUND'] ?? '',
-                        contractLabourChildrenWelfare: employeeData[
-                                'CONTRACT LABOUR CHILDREN WELFARE FUND'] ??
-                            '',
-                        canteen: employeeData['CANTEEN'] ?? '',
-                        wagesAdvance: employeeData['WAGES ADVANCE'] ?? '',
-                        arrearProfessionalTax:
-                            employeeData['ARREARS PROFESSIONAL'] ?? '',
-                        cmRelifeFund: employeeData['CM RELIEF FUND'] ?? '',
-                        medicalClaim: employeeData['MEDICAL CLAIM'] ?? '',
-                        benvolentFund: employeeData['BENEVOLENT FUND'] ?? '',
-                        incomeTax: employeeData['INCOME TAX'] ?? '',
-                        loanRecovery: employeeData['LOAN RECOVERY'] ?? '',
-                        pfLoanInterest: employeeData['PF LOAN INTEREST'] ?? '',
-                        otherAllowance: employeeData['OTHER ALLOWANCE'] ?? '',
-                        otDays: employeeData['OT DAYS'] ?? '',
-                        miscl: employeeData['MISCL DEDN'] ?? '',
-                        labourWelfare:
-                            employeeData['LABOUR WELFARE FUND'] ?? '',
-                        professionalTax:
-                            employeeData['PROFESSIONAL TAX'] ?? ''),
+                      employeeCode: employeeData['EMPLOYEE CODE'] ?? '',
+                      name: employeeData['EMPLOYEE NAME'] ?? '',
+                      bankName: employeeData['BANK NAME'] ?? '',
+                      grade: employeeData['GRADE'] ?? '',
+                      esi: employeeData['ESI NO'] ?? '',
+                      pfAccountNo: employeeData['PF ACCOUNT NUMBER'] ?? '',
+                      dateOfBirth: formatDate(employeeData['DOB'] ?? ''),
+                      bankAccountNo: employeeData['BANK A/C NO.'] ?? '',
+                      universalAccountNo: employeeData['UAN'] ?? '',
+                      workingDays: employeeData['WORKING DAYS'] ?? '',
+                      basicWagesRate: employeeData['BASIC WAGES RATE'] ?? '',
+                      tiffinAllowance: employeeData['TIFFIN ALLOWANCES'] ?? '',
+                      hra: employeeData['HRA'] ?? '',
+                      washAllowance: employeeData['WASH ALLOWANCE'] ?? '',
+                      medAllowance: employeeData['MED ALLOWANCE'] ?? '',
+                      sheAllowance: employeeData['SHE ALLOWANCE'] ?? '',
+                      prfAllowance: employeeData['PERF ALLOWANCE'] ?? '',
+                      tiffinReimAllowance:
+                          employeeData['TIFFIN REIM ALLOWANCE'] ?? '',
+                      specialAllowance: employeeData['SPECIAL ALLOWANCE'] ?? '',
+                      skillAllowance: employeeData['SKILL ALLOWANCE'] ?? '',
+                      arearOtherAllowance:
+                          employeeData['ARREARS OTHER ALLOWANCE'] ?? '',
+                      educationAllowance:
+                          employeeData['EDUCATION ALLOWANCE'] ?? '',
+                      heavyDutyAllowance:
+                          employeeData['HEAVY DUTY ALLOWANCE'] ?? '',
+                      attAllowance: employeeData['ATT ALLOWANCE'] ?? '',
+                      misclEarning: employeeData['MISCL ALLOWANCE'] ?? '',
+                      overtimeRate: employeeData['OVERTIME'] ?? '',
+                      leaveEncasment: employeeData['LEAVE ENCASHMENT'] ?? '',
+                      pmgkyBenifitRate: employeeData['PMGKY'] ?? '',
+                      gpa: employeeData['GPA'] ?? '',
+                      unionFund: employeeData['UNION FUND'] ?? '',
+                      contractLabourChildrenWelfare: employeeData[
+                              'CONTRACT LABOUR CHILDREN WELFARE FUND'] ??
+                          '',
+                      canteen: employeeData['CANTEEN'] ?? '',
+                      wagesAdvance: employeeData['WAGES ADVANCE'] ?? '',
+                      arrearProfessionalTax:
+                          employeeData['ARREARS PROFESSIONAL'] ?? '',
+                      cmRelifeFund: employeeData['CM RELIEF FUND'] ?? '',
+                      medicalClaim: employeeData['MEDICAL CLAIM'] ?? '',
+                      benvolentFund: employeeData['BENEVOLENT FUND'] ?? '',
+                      incomeTax: employeeData['INCOME TAX'] ?? '',
+                      loanRecovery: employeeData['LOAN RECOVERY'] ?? '',
+                      pfLoanInterest: employeeData['PF LOAN INTEREST'] ?? '',
+                      otherAllowance: employeeData['OTHER ALLOWANCE'] ?? '',
+                      otDays: employeeData['OT DAYS'] ?? '',
+                      miscl: employeeData['MISCL DEDN'] ?? '',
+                      labourWelfare: employeeData['LABOUR WELFARE FUND'] ?? '',
+                      professionalTax: employeeData['PROFESSIONAL TAX'] ?? '',
+                      arrearBasicWages:
+                          employeeData['ARREAR BASIC WAGES'] ?? '',
+                      arrearHra: employeeData['ARREAR HRA'] ?? '',
+                      weeklyOff: employeeData['WEEKLY OFF'] ?? '0000',
+                    ),
                   ));
             },
             style: ElevatedButton.styleFrom(

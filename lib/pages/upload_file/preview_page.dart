@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 class PreviewPage extends StatelessWidget {
   final Map<String, String> employeeData;
   final String employeeName;
+  final int employeeNumber; // Add an integer for Sr. No.
 
-
-
-  const PreviewPage({super.key, required this.employeeData, required this.employeeName});
+  const PreviewPage({
+    super.key,
+    required this.employeeData,
+    required this.employeeName,
+    required this.employeeNumber, // Pass Sr. No.
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +30,28 @@ class PreviewPage extends StatelessWidget {
                 'Employee Details',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              Text(
-                employeeName,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Sr. No.
+                  Text(
+                    '$employeeNumber.',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Employee Name
+                  Text(
+                    employeeName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               const Divider(thickness: 1.5, height: 20),
               Expanded(
@@ -110,7 +133,7 @@ class PreviewPage extends StatelessWidget {
                                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  overtimeDaysCount.toStringAsFixed(1), // Display as one decimal
+                                  overtimeDaysCount.toStringAsFixed(3), // Display as one decimal
                                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -141,21 +164,27 @@ class PreviewPage extends StatelessWidget {
 
   List<Widget> _buildEmployeeInfoRows({required bool isDay}) {
     List<Widget> rows = [];
-    List<MapEntry<String, String>> entries = employeeData.entries.toList();
 
-    for (var entry in entries) {
-      bool isDayEntry = entry.key.startsWith('Day');
-      if ((isDay && isDayEntry) || (!isDay && !isDayEntry)) {
+    employeeData.forEach((key, value) {
+      // Filter keys based on whether they are day-related or OT-related
+      bool isDayEntry = key.startsWith('Day');
+      bool isOTEntry = key.startsWith('OT');
+
+      if ((isDay && isDayEntry) || (!isDay && isOTEntry)) {
         rows.add(
-          buildDetailColumn(entry.key, entry.value),
+          buildDetailColumn(
+            label: key,
+            value: value,
+          ),
         );
       }
-    }
+    });
 
     return rows;
   }
 
-  Widget buildDetailColumn(String label, String value) {
+
+  Widget buildDetailColumn({required String label, required String value}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Container(
@@ -163,7 +192,7 @@ class PreviewPage extends StatelessWidget {
         height: 70,
         width: 70,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,

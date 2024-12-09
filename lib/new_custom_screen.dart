@@ -63,7 +63,7 @@ class EmployeeDetailsRow extends StatelessWidget {
             ),
             Container(width: 10),
             Flexible(
-                flex: 6,
+                flex: 8,
                 child: Row(
                   children: [
                     SizedBox(
@@ -536,8 +536,6 @@ class DetailsRow3 extends StatelessWidget {
   }
 }
 
-
-
 class EarningPaymentRow extends StatelessWidget {
   final String title1;
   final String title2;
@@ -561,7 +559,7 @@ class EarningPaymentRow extends StatelessWidget {
     }
 
     return SizedBox(
-      width: MediaQuery.of(context).size.width*0.2415,
+      width: MediaQuery.of(context).size.width * 0.2415,
       child: Row(
         children: [
           Expanded(
@@ -571,8 +569,8 @@ class EarningPaymentRow extends StatelessWidget {
               alignment: Alignment.centerLeft,
               decoration: const BoxDecoration(
                 border: Border(
-                  left: BorderSide(color: Colors.grey),
-                ),
+                    // left: BorderSide(color: Colors.red),
+                    ),
               ),
               child: Text(
                 title1,
@@ -593,7 +591,8 @@ class EarningPaymentRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Container(
-              alignment: Alignment.center,
+              padding: EdgeInsets.symmetric(horizontal: 2),
+              alignment: Alignment.centerRight,
               decoration: const BoxDecoration(
                 border: Border(
                   right: BorderSide(color: Colors.grey),
@@ -610,7 +609,6 @@ class EarningPaymentRow extends StatelessWidget {
     );
   }
 }
-
 
 class DeductionPaymentRow extends StatelessWidget {
   final String title4;
@@ -633,7 +631,7 @@ class DeductionPaymentRow extends StatelessWidget {
 
     return SizedBox(
       // color: Colors.red,
-      width: MediaQuery.of(context).size.width*0.180,
+      width: MediaQuery.of(context).size.width * 0.180,
       child: Row(
         children: [
           Expanded(
@@ -655,7 +653,7 @@ class DeductionPaymentRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Container(
-              alignment: Alignment.center,
+              alignment: Alignment.centerRight,
               child: Text(
                 title5,
                 style: const TextStyle(fontSize: 10),
@@ -667,9 +665,6 @@ class DeductionPaymentRow extends StatelessWidget {
     );
   }
 }
-
-
-
 
 class DetailsRow4 extends StatelessWidget {
   const DetailsRow4({super.key});
@@ -738,7 +733,7 @@ class DetailsRow4 extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
                     border: Border(
-                        // bottom: BorderSide(color: Colors.grey),
+                        // bottom: BorderSide(color: Colors.red),
                         right: BorderSide(color: Colors.grey))),
                 child: Text(
                   title4,
@@ -778,7 +773,6 @@ class DetailsRow4 extends StatelessWidget {
                 color: Colors.grey,
               ),
               right: BorderSide(color: Colors.grey),
-              bottom: BorderSide(color: Colors.grey),
               top: BorderSide(color: Colors.grey))),
       child: Column(
         children: [
@@ -808,44 +802,67 @@ class DetailsRow5 extends StatelessWidget {
     String title3,
     String title4,
   ) {
-    return Row(
-      children: [
-        Flexible(
-          flex: 6,
-          child: Container(
-            // width: MediaQuery.of(context).size.width*0.2,
+    return Container(
+      margin: const EdgeInsets.all(1),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+      // color: Colors.blue,
+      child: Row(
+        children: [
+          Flexible(
+            flex: 6,
+            child: Container(
+              // width: MediaQuery.of(context).size.width*0.2,
 
-            decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: Colors.grey))),
-            child: Row(
-              children: [
-                Text(
-                  title1,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+              decoration: const BoxDecoration(
+                  border: Border(right: BorderSide(color: Colors.grey))),
+              child: Row(
+                children: [
+                  Text(
+                    title1,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        // Container(width: 10),
-        // Container(width: 10),
-        Flexible(
-          flex: 2,
-          child: Container(
-            decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: Colors.grey))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  // color: Colors.grey,
+          // Container(width: 10),
+          // Container(width: 10),
+          Flexible(
+            flex: 2,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 1),
+
+alignment: Alignment.centerRight,
+              decoration: const BoxDecoration(
+                  border: Border(right: BorderSide(color: Colors.grey))),
+              child: Text(
+                textAlign: TextAlign.right,
+                title2,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          // Container(width: 10),
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: Container(
+                decoration: const BoxDecoration(
+                    border: Border(right: BorderSide(color: Colors.grey))),
+                child: SizedBox(
+                  // color: Colors.blueAccent,
                   height: 15,
                   child: Text(
-                    title2,
+                    title3,
                     style: const TextStyle(
                       fontSize: 10,
                       color: Colors.black,
@@ -853,63 +870,38 @@ class DetailsRow5 extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-        // Container(width: 10),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 2),
+          // Container(width: 10),
+          Flexible(
+            flex: 2,
             child: Container(
-              decoration: const BoxDecoration(
-                  border: Border(right: BorderSide(color: Colors.grey))),
-              child: SizedBox(
-                // color: Colors.blueAccent,
-                height: 15,
-                child: Text(
-                  title3,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+              alignment: Alignment.centerRight,
+              // color: Colors.orange,
+              height: 15,
+              child: Text(
+                title4,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-        ),
-        // Container(width: 10),
-        Flexible(
-          flex: 2,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                // color: Colors.orange,
-                height: 15,
-                child: Text(
-                  title4,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Container(width: 10),
-      ],
+          // Container(width: 10),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+      decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.grey))
+      ),
       child: Column(
         children: [
           _buildRow(
@@ -972,9 +964,10 @@ class DetailsRow6 extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
           border: Border(
-              left: BorderSide(color: Colors.grey),
-              bottom: BorderSide(color: Colors.grey),
-              right: BorderSide(color: Colors.grey))),
+              // left: BorderSide(color: Colors.red),
+              // bottom: BorderSide(color: Colors.grey),
+              // right: BorderSide(color: Colors.grey)
+              )),
       child: Column(
         children: [
           _buildRow("Net Salary :", netSalary),
@@ -989,10 +982,8 @@ class DetailsRow7 extends StatelessWidget {
 
   const DetailsRow7({super.key, required this.netSalaryInWord});
 
-
   @override
   Widget build(BuildContext context) {
-
     return Row(
       children: [
         const Text(
@@ -1004,7 +995,7 @@ class DetailsRow7 extends StatelessWidget {
           ),
         ),
         Text(
-         "Rupees $netSalaryInWord only",  // Display netSalaryInWords here
+          "Rupees $netSalaryInWord only", // Display netSalaryInWords here
           style: const TextStyle(
             fontSize: 10,
             color: Colors.black,
@@ -1015,9 +1006,3 @@ class DetailsRow7 extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-

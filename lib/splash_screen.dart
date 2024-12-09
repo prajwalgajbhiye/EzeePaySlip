@@ -1,9 +1,10 @@
-
 import 'dart:async';
-
 import 'package:EzeePayslip/pages/home_page.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
+import 'android_pages/android_home_page.dart'; // Required for defaultTargetPlatform
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,6 +38,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // Platform-specific parameters
+    final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final double imageWidth = isAndroid ? 200 : 300;
+    final double imageHeight = isAndroid ? 200 : 300;
+    final double leftPosition = isAndroid
+        ? (MediaQuery.of(context).size.width * 0.3)
+        : (MediaQuery.of(context).size.width * 0.4);
+    final double topPosition = isAndroid
+        ? (MediaQuery.of(context).size.height * 0.35)
+        : (MediaQuery.of(context).size.height * 0.20);
+    final double textBottomPosition = isAndroid ? 150 : 200;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -55,26 +68,53 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             AnimatedPositioned(
               duration: const Duration(seconds: 1),
               curve: Curves.easeInOut,
-              left: _positioned ? MediaQuery.of(context).size.width * 0.4 : 0,
-              top: _positioned ? MediaQuery.of(context).size.height * 0.20 : 0,
+              left: _positioned ? leftPosition : 0,
+              top: _positioned ? topPosition : 0,
               child: AnimatedOpacity(
                 duration: const Duration(seconds: 1),
                 opacity: _visible ? 1.0 : 0.0,
                 child: Image.asset(
                   'assets/images/splashscreen.png', // Replace with your image asset
-                  width: 300,
-                  height: 300,
+                  width: imageWidth,
+                  height: imageHeight,
                 ),
               ),
             ),
             // Moving Text
             Positioned(
-              bottom: 200,
-              child: AnimatedTextKit(
+              bottom: textBottomPosition,
+              child: isAndroid ?Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.all(10),
+                height: 200,
+                width: 300,
+                // color: Colors.red,
+                child: AnimatedTextKit(
+
+                  animatedTexts: [
+                    TyperAnimatedText(
+                      textAlign: TextAlign.center,
+                      'Create a one-click payment slip for your business',
+
+                      textStyle: const TextStyle(
+
+                        fontFamily: "Oi-Regular.ttf",
+                        fontSize: 24,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      speed: const Duration(milliseconds: 30),
+                    ),
+                  ],
+                  totalRepeatCount: 1,
+                ),
+              ):AnimatedTextKit(
                 animatedTexts: [
                   TyperAnimatedText(
                     'Create a one-click payment slip for your business',
+
                     textStyle: const TextStyle(
+
                       fontFamily: "Oi-Regular.ttf",
                       fontSize: 24,
                       color: Colors.grey,

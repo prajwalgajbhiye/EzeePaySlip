@@ -14,12 +14,14 @@ class GeneratePaySlip extends StatefulWidget {
   final String bankAccountNo;
   final String universalAccountNo;
   final String workingDays;
+  final String weeklyOff;
   final String basicWagesRate;
   final String tiffinAllowance;
 
   final String otherAllowance;
 
   final String hra;
+  final String arrearHra;
   final String washAllowance;
   final String medAllowance;
   final String sheAllowance;
@@ -35,6 +37,7 @@ class GeneratePaySlip extends StatefulWidget {
   final String overtimeRate;
   final String leaveEncasment;
   final String pmgkyBenifitRate;
+  final String arrearBasicWages;
 
   final String miscl;
   final String labourWelfare;
@@ -101,6 +104,9 @@ class GeneratePaySlip extends StatefulWidget {
     required this.miscl,
     required this.labourWelfare,
     required this.professionalTax,
+    required this.arrearBasicWages,
+    required this.arrearHra,
+    required this.weeklyOff,
   });
 
   @override
@@ -109,8 +115,20 @@ class GeneratePaySlip extends StatefulWidget {
 }
 
 class _GeneratePaySlipState extends State<GeneratePaySlip> {
+  String selectedMonth = DateTime.now().month.toString();
+  int selectedYear = DateTime.now().year;
+
+  void _updateSelectedMonthYear(String month, int year) {
+    setState(() {
+      selectedMonth = month;
+      selectedYear = year;
+    });
+  }
+
   bool useCustomEsiAmount = false; // Set to true when custom amount is used
-  String netSalaryInWords = ''; // Declare this variable here
+  // String netSalaryInWords = ''; // Declare this variable here
+  // String? selectedYear;
+  // String? selectedMonth;
 
   final TextEditingController employeeCodeController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
@@ -133,6 +151,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
   final TextEditingController basicWagesRateController =
       TextEditingController();
   final TextEditingController hraRateController = TextEditingController();
+  final TextEditingController arrearHraController = TextEditingController();
   final TextEditingController tiffinAllowanceRateController =
       TextEditingController();
   final TextEditingController otherAllowanceRateController =
@@ -140,6 +159,9 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
 
   // Calculated amount fields
   final TextEditingController basicWagesAmountController =
+      TextEditingController();
+
+  final TextEditingController arrearBasicWagesAmountController =
       TextEditingController();
   final TextEditingController hraAmountController = TextEditingController();
   final TextEditingController tiffinAllowanceAmountController =
@@ -167,7 +189,8 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
   final TextEditingController skillAmountController = TextEditingController();
 
   // final TextEditingController arearRateController = TextEditingController();
-  final TextEditingController arearAmountController = TextEditingController();
+  final TextEditingController arrearOtherAmountController =
+      TextEditingController();
 
   // final TextEditingController educationRateController = TextEditingController();
   final TextEditingController educationAmountController =
@@ -202,7 +225,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
   final TextEditingController gpaAmountController = TextEditingController();
   final TextEditingController unionFundAmountController =
       TextEditingController();
-  final TextEditingController childrenWelfareFundAmountController =
+  final TextEditingController contractLabourChildrenwelfarefundController =
       TextEditingController();
   final TextEditingController canteenAmountController = TextEditingController();
   final TextEditingController wagesAdvanceAmountController =
@@ -251,6 +274,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     bankAccountNoController.text = widget.bankAccountNo;
     universalAccountNoController.text = widget.universalAccountNo;
     workingDaysController.text = widget.workingDays;
+    weeklyOffController.text = widget.weeklyOff;
     basicWagesRateController.text = widget.basicWagesRate;
     tiffinAllowanceRateController.text = widget.tiffinAllowance;
     otherAllowanceRateController.text = widget.otherAllowance;
@@ -259,7 +283,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
 
     specialRateController.text = widget.specialAllowance;
     skillRateController.text = widget.skillAllowance;
-    arearAmountController.text = widget.arearOtherAllowance;
+    arrearOtherAmountController.text = widget.arearOtherAllowance;
     educationAmountController.text = widget.educationAllowance;
     heavyDutyAmountController.text = widget.heavyDutyAllowance;
     attAmountController.text = widget.attAllowance;
@@ -268,10 +292,12 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     leaveEncashmentController.text = widget.leaveEncasment;
     pmgkyAmountController.text = widget.pmgkyBenifitRate;
 
+    arrearBasicWagesAmountController.text = widget.arrearBasicWages;
+
     professionalTaxAmountController.text = widget.professionalTax;
     gpaAmountController.text = widget.gpa;
     unionFundAmountController.text = widget.unionFund;
-    childrenWelfareFundAmountController.text =
+    contractLabourChildrenwelfarefundController.text =
         widget.contractLabourChildrenWelfare;
     canteenAmountController.text = widget.canteen;
     wagesAdvanceAmountController.text = widget.wagesAdvance;
@@ -285,6 +311,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     miscldednController.text = widget.miscl;
     otRateController.text = widget.otDays;
     hraRateController.text = widget.hra;
+    arrearHraController.text = widget.arrearHra;
     prfRateController.text = widget.prfAllowance;
     washRateController.text = widget.washAllowance;
     sheRateController.text = widget.sheAllowance;
@@ -293,9 +320,12 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
 
     // Add listeners to earnings-related controllers
     workingDaysController.addListener(_updateAmounts);
+    weeklyOffController.addListener(_updateAmounts);
     basicWagesRateController.addListener(_updateAmounts);
     basicWagesAmountController.addListener(_updateAmounts);
+    arrearBasicWagesAmountController.addListener(_updateAmounts);
     hraRateController.addListener(_updateAmounts);
+    arrearHraController.addListener(_updateAmounts);
     hraAmountController.addListener(_updateAmounts);
     tiffinAllowanceRateController.addListener(_updateAmounts);
     otherAllowanceRateController.addListener(_updateAmounts);
@@ -314,7 +344,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     specialAmountController.addListener(_updateAmounts);
     skillRateController.addListener(_updateAmounts);
     skillAmountController.addListener(_updateAmounts);
-    arearAmountController.addListener(_updateAmounts);
+    arrearOtherAmountController.addListener(_updateAmounts);
     educationAmountController.addListener(_updateAmounts);
     heavyDutyAmountController.addListener(_updateAmounts);
     misclAmountController.addListener(_updateAmounts);
@@ -327,7 +357,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     professionalTaxAmountController.addListener(_updateAmounts);
     gpaAmountController.addListener(_updateAmounts);
     unionFundAmountController.addListener(_updateAmounts);
-    childrenWelfareFundAmountController.addListener(_updateAmounts);
+    contractLabourChildrenwelfarefundController.addListener(_updateAmounts);
     canteenAmountController.addListener(_updateAmounts);
     wagesAdvanceAmountController.addListener(_updateAmounts);
     arrearProfessionalTaxAmountController.addListener(_updateAmounts);
@@ -353,36 +383,81 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
 
       // Calculate earnings based on actual working days
       final basicWagesRate = parseDouble(basicWagesRateController.text);
+      final arrearBasicWages =
+          parseDouble(arrearBasicWagesAmountController.text);
       final hraRate = parseDouble(hraRateController.text);
+      final unionFund = parseDouble(unionFundAmountController.text);
+      final arrearHra = parseDouble(arrearHraController.text);
+      final profesinoalTax = parseDouble(professionalTaxAmountController.text);
       final tiffinAllowanceRate =
           parseDouble(tiffinAllowanceRateController.text);
-      final otherAllowanceRate = parseDouble(otherAllowanceRateController.text);
+      final tiffinAllowanceAmount =
+          parseDouble(tiffinAllowanceAmountController.text);
+
       final prfAllowanceRate = parseDouble(prfRateController.text);
+      final prfAllowanceAmount = parseDouble(prfAmountController.text);
+
       final washAllowanceRate = parseDouble(washRateController.text);
+      final washAllowanceAmount = parseDouble(washAmountController.text);
+
       final sheAllowanceRate = parseDouble(sheRateController.text);
+      final sheAllowanceAmount = parseDouble(sheAmountController.text);
+
       final medAllowanceRate = parseDouble(medRateController.text);
+      final medAllowanceAmount = parseDouble(medAmountController.text);
+
       final otrate = parseDouble(otRateController.text);
+
       final tiffinReimAllowanceRate =
           parseDouble(tiffinReimRateController.text);
-      final specialAllowanceRate = parseDouble(specialRateController.text);
-      final skillAllowanceRate = parseDouble(skillRateController.text);
+      final tiffinReimAllowanceAmount =
+          parseDouble(tiffinReimAmountController.text);
 
-      final arrearAllowanceRate = parseDouble(arearAmountController.text);
+      final specialAllowanceRate = parseDouble(specialRateController.text);
+      final specialAllowanceAmount = parseDouble(specialAmountController.text);
+
+      final skillAllowanceRate = parseDouble(skillRateController.text);
+      final skillAllowanceAmount = parseDouble(skillAmountController.text);
+
+      final arrearOtherAllowance =
+          parseDouble(arrearOtherAmountController.text);
       final heavyDutyAllowanceRate =
           parseDouble(heavyDutyAmountController.text);
-      final educationAllowanceRate =
-          parseDouble(educationAmountController.text);
+      final educationAllowance = parseDouble(educationAmountController.text);
       final attAllowanceRate = parseDouble(attAmountController.text);
       final misclAllowanceRate = parseDouble(misclAmountController.text);
       final overtimeAllowanceRate = parseDouble(overtimeAmountController.text);
-      final leaveAmountAllowanceRate =
+      final leaveEncashmentAllowanceRate =
           parseDouble(leaveEncashmentController.text);
       final pmgkyAllowanceRate = parseDouble(pmgkyAmountController.text);
+
+      final otherAllowanceAmount =
+          parseDouble(otherAllowanceAmountController.text);
+      final otherAllowanceRate = parseDouble(otherAllowanceRateController.text);
+
+      final providentFund = parseDouble(pfAmountController.text);
+      final gpa = parseDouble(gpaAmountController.text);
+
+      final contractLabourChildrenWelfareFund =
+          parseDouble(contractLabourChildrenwelfarefundController.text);
+      final canteen = parseDouble(canteenAmountController.text);
+      final wagesAdvance = parseDouble(wagesAdvanceAmountController.text);
+      final arrearProfessinalTax =
+          parseDouble(arrearProfessionalTaxAmountController.text);
+      final cmReliefFund = parseDouble(cmReliefFundAmountController.text);
+      final medicalClaim = parseDouble(medicalClaimAmountController.text);
+      final benvolentFund = parseDouble(benvolentFundAmountController.text);
+      final incomeTax = parseDouble(incomeTaxAmountController.text);
+      final loanrecovery = parseDouble(loanRecoveryAmountController.text);
+      final pfLoanInterest = parseDouble(pfLoanInterestAmountController.text);
+      final misclDedn = parseDouble(miscldednController.text);
+      final labourWelfareFund = parseDouble(labourWelfareFundController.text);
 
       // Calculate actual earnings for present working days
       basicWagesAmountController.text =
           (basicWagesRate * workingDays).toStringAsFixed(2);
       hraAmountController.text = (hraRate * workingDays).toStringAsFixed(2);
+      unionFundAmountController.text = unionFund.toStringAsFixed(2);
       tiffinAllowanceAmountController.text =
           (tiffinAllowanceRate * workingDays).toStringAsFixed(2);
       otherAllowanceAmountController.text =
@@ -406,10 +481,51 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
       skillAmountController.text =
           (skillAllowanceRate * workingDays).toStringAsFixed(2);
 
+      professionalTaxAmountController.text = profesinoalTax.toStringAsFixed(2);
+
+      arrearBasicWagesAmountController.text =
+          arrearBasicWages.toStringAsFixed(2);
+      arrearHraController.text = arrearHra.toStringAsFixed(2);
+      arrearOtherAmountController.text =
+          arrearOtherAllowance.toStringAsFixed(2);
+      educationAmountController.text = educationAllowance.toStringAsFixed(2);
+      heavyDutyAmountController.text =
+          heavyDutyAllowanceRate.toStringAsFixed(2);
+      attAmountController.text = attAllowanceRate.toStringAsFixed(2);
+      misclAmountController.text = misclAllowanceRate.toStringAsFixed(2);
+      overtimeAmountController.text = overtimeAllowanceRate.toStringAsFixed(2);
+      leaveEncashmentController.text =
+          leaveEncashmentAllowanceRate.toStringAsFixed(2);
+      pmgkyAmountController.text = pmgkyAllowanceRate.toStringAsFixed(2);
+      prfRateController.text = prfAllowanceRate.toStringAsFixed(2);
+      specialRateController.text = specialAllowanceRate.toStringAsFixed(2);
+      skillRateController.text = skillAllowanceRate.toStringAsFixed(2);
+      prfRateController.text = prfAllowanceRate.toStringAsFixed(2);
+      tiffinReimRateController.text =
+          tiffinReimAllowanceRate.toStringAsFixed(2);
+      otherAllowanceRateController.text = otherAllowanceRate.toStringAsFixed(2);
+
+      gpaAmountController.text = gpa.toStringAsFixed(2);
+      contractLabourChildrenwelfarefundController.text =
+          contractLabourChildrenWelfareFund.toStringAsFixed(2);
+      canteenAmountController.text = canteen.toStringAsFixed(2);
+      wagesAdvanceAmountController.text = wagesAdvance.toStringAsFixed(2);
+      arrearProfessionalTaxAmountController.text =
+          arrearProfessinalTax.toStringAsFixed(2);
+      cmReliefFundAmountController.text = cmReliefFund.toStringAsFixed(2);
+      medicalClaimAmountController.text = medicalClaim.toStringAsFixed(2);
+      benvolentFundAmountController.text = benvolentFund.toStringAsFixed(2);
+      incomeTaxAmountController.text = incomeTax.toStringAsFixed(2);
+      loanRecoveryAmountController.text = loanrecovery.toStringAsFixed(2);
+      pfLoanInterestAmountController.text = pfLoanInterest.toStringAsFixed(2);
+      miscldednController.text = misclDedn.toStringAsFixed(2);
+      labourWelfareFundController.text = labourWelfareFund.toStringAsFixed(2);
 
       // Calculate Gross Earnings based on actual working days
       final grossEarnings = parseDouble(basicWagesAmountController.text) +
+          parseDouble(arrearBasicWagesAmountController.text) +
           parseDouble(hraAmountController.text) +
+          parseDouble(arrearHraController.text) +
           parseDouble(tiffinAllowanceAmountController.text) +
           parseDouble(otherAllowanceAmountController.text) +
           parseDouble(prfAmountController.text) +
@@ -420,7 +536,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
           parseDouble(otAmountController.text) +
           parseDouble(specialAmountController.text) +
           parseDouble(skillAmountController.text) +
-          parseDouble(arearAmountController.text) +
+          parseDouble(arrearOtherAmountController.text) +
           parseDouble(heavyDutyAmountController.text) +
           parseDouble(educationAmountController.text) +
           parseDouble(attAmountController.text) +
@@ -433,7 +549,9 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
 
       // Calculate full monthly earnings based on a 26-day period (excluding OT)
       final fullMonthlyEarnings = (basicWagesRate +
+              arrearBasicWages +
               hraRate +
+              arrearHra +
               tiffinAllowanceRate +
               otherAllowanceRate +
               prfAllowanceRate +
@@ -443,12 +561,12 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
               tiffinReimAllowanceRate +
               specialAllowanceRate +
               skillAllowanceRate +
-              arrearAllowanceRate +
+              arrearOtherAllowance +
               heavyDutyAllowanceRate +
-              educationAllowanceRate +
+              educationAllowance +
               attAllowanceRate +
               misclAllowanceRate +
-              leaveAmountAllowanceRate +
+              leaveEncashmentAllowanceRate +
               pmgkyAllowanceRate +
               overtimeAllowanceRate) *
           fullWorkingDays;
@@ -479,16 +597,18 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
               : 0.0) +
           parseDouble(gpaAmountController.text) +
           parseDouble(unionFundAmountController.text) +
-          parseDouble(childrenWelfareFundAmountController.text) +
+          parseDouble(contractLabourChildrenwelfarefundController.text) +
           parseDouble(canteenAmountController.text) +
           parseDouble(wagesAdvanceAmountController.text) +
           parseDouble(arrearProfessionalTaxAmountController.text) +
           parseDouble(cmReliefFundAmountController.text) +
           parseDouble(medicalClaimAmountController.text) +
-          parseDouble(incomeTaxAmountController.text) +
           parseDouble(benvolentFundAmountController.text) +
+          parseDouble(incomeTaxAmountController.text) +
           parseDouble(loanRecoveryAmountController.text) +
-          parseDouble(pfLoanInterestAmountController.text);
+          parseDouble(pfLoanInterestAmountController.text) +
+          parseDouble(miscldednController.text) +
+          parseDouble(labourWelfareFundController.text);
 
       grossDeductionsController.text = grossDeductions.toStringAsFixed(2);
 
@@ -506,6 +626,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     // Remove listeners from earnings-related controllers
     workingDaysController.removeListener(_updateAmounts);
     basicWagesRateController.removeListener(_updateAmounts);
+    arrearBasicWagesAmountController.removeListener(_updateAmounts);
     hraRateController.removeListener(_updateAmounts);
     tiffinAllowanceRateController.removeListener(_updateAmounts);
     otherAllowanceRateController.removeListener(_updateAmounts);
@@ -537,7 +658,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     professionalTaxAmountController.removeListener(_updateAmounts);
     gpaAmountController.removeListener(_updateAmounts);
     unionFundAmountController.removeListener(_updateAmounts);
-    childrenWelfareFundAmountController.removeListener(_updateAmounts);
+    contractLabourChildrenwelfarefundController.removeListener(_updateAmounts);
     canteenAmountController.removeListener(_updateAmounts);
     wagesAdvanceAmountController.removeListener(_updateAmounts);
     arrearProfessionalTaxAmountController.removeListener(_updateAmounts);
@@ -564,7 +685,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     professionalTaxAmountController.dispose();
     gpaAmountController.dispose();
     unionFundAmountController.dispose();
-    childrenWelfareFundAmountController.dispose();
+    contractLabourChildrenwelfarefundController.dispose();
     canteenAmountController.dispose();
     wagesAdvanceAmountController.dispose();
     arrearProfessionalTaxAmountController.dispose();
@@ -576,9 +697,6 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
     pfLoanInterestAmountController.dispose();
     customEsiAmountController.dispose();
     esiNoController.dispose();
-
-    showFloatingButton.value =
-        false; // Hide the button when leaving the home screen
 
     super.dispose();
   }
@@ -601,7 +719,8 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     EmployeeInfoColumn(
                       employeeCodeController: employeeCodeController,
@@ -619,13 +738,9 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                     ),
                     EarningColumn(
                       basicWagesRateController: basicWagesRateController,
-                      hraRateController: hraRateController,
-                      tiffinAllowanceRateController:
-                          tiffinAllowanceRateController,
                       basicWagesAmountController: basicWagesAmountController,
+                      hraRateController: hraRateController,
                       hraAmountController: hraAmountController,
-                      tiffinAllowanceAmountController:
-                          tiffinAllowanceAmountController,
                       prefRateController: prfRateController,
                       prefAmountController: prfAmountController,
                       washRateController: washRateController,
@@ -634,21 +749,25 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                       sheAmountController: sheAmountController,
                       medRateController: medRateController,
                       medAmountController: medAmountController,
-                      tiffinReimRateController: tiffinReimRateController,
-                      tiffinReimAmountController: tiffinReimAmountController,
                       specialRateController: specialRateController,
                       specialAmountController: specialAmountController,
                       skillRateController: skillRateController,
                       skillAmountController: skillAmountController,
+                      arrearBasicWagesAmountController:
+                          arrearBasicWagesAmountController,
+                      arrearHraRateController: arrearHraController,
                     ),
                     EarningColumnTwo(
+                      tiffinAllowanceAmountController:
+                          tiffinAllowanceAmountController,
+                      tiffinAllowanceRateController:
+                          tiffinAllowanceRateController,
                       otRateController: otRateController,
                       otAmountController: otAmountController,
                       otherAllowanceAmountController:
                           otherAllowanceAmountController,
                       otherAllowanceRateController:
                           otherAllowanceRateController,
-                      arearAmountController: arearAmountController,
                       attAmountController: attAmountController,
                       misclAmountController: misclAmountController,
                       leaveEncashmentController: leaveEncashmentController,
@@ -656,12 +775,16 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                       educationAmountController: educationAmountController,
                       heavyDutyAmountController: heavyDutyAmountController,
                       overtimeAmountController: overtimeAmountController,
+                      tiffinReimRateController: tiffinReimRateController,
+                      tiffinReimAmountController: tiffinReimAmountController,
+                      arearAmountController: arrearOtherAmountController,
                     )
                   ],
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DeductionColumn(
                     pfAmountController: pfAmountController,
@@ -669,7 +792,7 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                     gpaAmountController: gpaAmountController,
                     unionFundAmountController: unionFundAmountController,
                     childrenWelfareFundAmountController:
-                        childrenWelfareFundAmountController,
+                        contractLabourChildrenwelfarefundController,
                     canteenAmountController: canteenAmountController,
                     wagesAdvanceAmountController: wagesAdvanceAmountController,
                     arrearProfessionalTaxAmountController:
@@ -677,6 +800,8 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                     cmReliefFundAmountController: cmReliefFundAmountController,
                     miscldednController: miscldednController,
                     taxAmountController: professionalTaxAmountController,
+                    medicalClaimController: medicalClaimAmountController,
+                    benevolentFundController: benvolentFundAmountController,
                   ),
                   Summary(
                     medicalClaimAmountController: medicalClaimAmountController,
@@ -684,166 +809,109 @@ class _GeneratePaySlipState extends State<GeneratePaySlip> {
                         benvolentFundAmountController,
                     incomeTaxAmountController: incomeTaxAmountController,
                     loanRecoveryAmountController: loanRecoveryAmountController,
-                    pfLoanInterestAmountController:
-                        pfLoanInterestAmountController,
-                    grossEarningsController: grossEarningsController,
-                    grossDeductionsController: grossDeductionsController,
-                    netSalaryController: netSalaryController,
                     labourWelfareFundController: labourWelfareFundController,
+                    incomeTaxController: incomeTaxAmountController,
+                    loanRecoveryController: loanRecoveryAmountController,
+                    pfLoanInterest: pfLoanInterestAmountController,
+                    miscldednController: miscldednController,
+                    esiAmountController: esiAmountController,
                   ),
-                  SizedBox(
-                    height: screenHeight > 200 ? 700 : double.infinity,
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MonthContainer(),
-                      ],
-                    ),
-                  ),
+                  // SizedBox(width: 12,),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MonthYearSelectorScreen(
+                        pfLoanInterestAmountController:
+                            pfLoanInterestAmountController,
+                        grossEarningsController: grossEarningsController,
+                        grossDeductionsController: grossDeductionsController,
+                        netSalaryController: netSalaryController,
+                        onMonthYearChanged: _updateSelectedMonthYear,
+                      ),
+                    ],
+                  )
                 ],
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: ValueListenableBuilder<bool>(
-        valueListenable: showFloatingButton,
-        builder: (context, isButtonVisible, child) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: SizedBox(
-              height: isButtonVisible
-                  ? MediaQuery.of(context).size.height * 0.15
-                  : MediaQuery.of(context).size.height * 0.08,
-              child: Column(
-                children: [
-                  ValueListenableBuilder<bool>(
-                    valueListenable: showFloatingButton,
-                    builder: (context, isButtonVisible, child) {
-                      if (isButtonVisible) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: MediaQuery.of(context).size.height * 0.06,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context)
-                                    .pushNamed('/PaymentSlip')
-                                    .then((_) {
-                                  showFloatingButton.value = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal,
-                                padding: const EdgeInsets.all(16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Back To Payment Slip Page",
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 20),
-                                  ),
-                                  SizedBox(
-                                    width: 20,
-                                  ),
-                                  Icon(Icons.payment, color: Colors.white),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      } else {
-                        return const SizedBox(height: 1);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: GenerateButton(
-                      employeeCodeController: employeeCodeController,
-                      nameController: nameController,
-                      bankNameController: bankNameController,
-                      bankAccountNoController: bankAccountNoController,
-                      dobController: dobController,
-                      gradeController: gradeController,
-                      pfAccountNoController: pfAccountNoController,
-                      universalAccountNoController:
-                          universalAccountNoController,
-                      esiNoController: esiNoController,
-                      workingDaysController: workingDaysController,
-                      weeklyOffController: weeklyOffController,
-                      leaveDaysController: leaveDaysController,
-                      phController: phController,
-                      basicWagesRateController: basicWagesRateController,
-                      basicWagesAmountController: basicWagesAmountController,
-                      hraRateController: hraRateController,
-                      hraAmountController: hraAmountController,
-                      tiffinAllowanceRateController:
-                          tiffinAllowanceRateController,
-                      tiffinAllowanceAmountController:
-                          tiffinAllowanceAmountController,
-                      otherAllowanceRateController:
-                          otherAllowanceRateController,
-                      otherAllowanceAmountController:
-                          otherAllowanceAmountController,
-                      pfAmountController: pfAmountController,
-                      taxAmountController: professionalTaxAmountController,
-                      esiAmountController: esiAmountController,
-                      grossEarningsController: grossEarningsController,
-                      grossDeductionsController: grossDeductionsController,
-                      netSalaryController: netSalaryController,
-                      prfRateController: prfRateController,
-                      prfAmountController: prfAmountController,
-                      washRateController: washRateController,
-                      washAmountController: washAmountController,
-                      sheRateController: sheRateController,
-                      sheAmountController: sheAmountController,
-                      medRateController: medRateController,
-                      medAmountController: medAmountController,
-                      specialRateController: specialRateController,
-                      specialAmountController: specialAmountController,
-                      skillRateController: skillRateController,
-                      skillAmountController: skillAmountController,
-                      tiffinReimRateController: tiffinReimRateController,
-                      tiffinReimAmountController: tiffinReimAmountController,
-                      educationAmountController: educationAmountController,
-                      arearOtherAmountController: arearAmountController,
-                      heavyDutyAmountController: heavyDutyAmountController,
-                      attAmountController: attAmountController,
-                      misclEarningController: misclAmountController,
-                      overtimeAmountController: overtimeAmountController,
-                      leaveEncashmentController: leaveEncashmentController,
-                      pmgkyBenifitController: pmgkyAmountController,
-                      otDaysController: otRateController,
-                      gpaController: gpaAmountController,
-                      unionFundController: unionFundAmountController,
-                      contractLabourwelfarefundController:childrenWelfareFundAmountController ,
-                      canteenController: canteenAmountController,
-                      wagesAdvanceController: wagesAdvanceAmountController,
-                      arrearProfessionaltaxController: arrearProfessionalTaxAmountController,
-                      cmRelifeFundController: cmReliefFundAmountController,
-                      medicalClaimController: medicalClaimAmountController,
-                      benvolentFundController: benvolentFundAmountController,
-                      incomeTaxController: incomeTaxAmountController,
-                      loanRecoveryController: loanRecoveryAmountController,
-                      pfLoanInterestController: pfLoanInterestAmountController,
-                      misclDednController: misclAmountController,
-                      labourWelfareFundController: labourWelfareFundController,
-                      otDaysAmountsController: otAmountController,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+        child: GenerateButton(
+          employeeCodeController: employeeCodeController,
+          nameController: nameController,
+          bankNameController: bankNameController,
+          bankAccountNoController: bankAccountNoController,
+          dobController: dobController,
+          gradeController: gradeController,
+          pfAccountNoController: pfAccountNoController,
+          universalAccountNoController: universalAccountNoController,
+          esiNoController: esiNoController,
+          workingDaysController: workingDaysController,
+          weeklyOffController: weeklyOffController,
+          leaveDaysController: leaveDaysController,
+          phController: phController,
+          basicWagesRateController: basicWagesRateController,
+          basicWagesAmountController: basicWagesAmountController,
+          hraRateController: hraRateController,
+          hraAmountController: hraAmountController,
+          tiffinAllowanceRateController: tiffinAllowanceRateController,
+          tiffinAllowanceAmountController: tiffinAllowanceAmountController,
+          otherAllowanceRateController: otherAllowanceRateController,
+          otherAllowanceAmountController: otherAllowanceAmountController,
+          pfAmountController: pfAmountController,
+          taxAmountController: professionalTaxAmountController,
+          esiAmountController: esiAmountController,
+          grossEarningsController: grossEarningsController,
+          grossDeductionsController: grossDeductionsController,
+          netSalaryController: netSalaryController,
+          prfRateController: prfRateController,
+          prfAmountController: prfAmountController,
+          washRateController: washRateController,
+          washAmountController: washAmountController,
+          sheRateController: sheRateController,
+          sheAmountController: sheAmountController,
+          medRateController: medRateController,
+          medAmountController: medAmountController,
+          specialRateController: specialRateController,
+          specialAmountController: specialAmountController,
+          skillRateController: skillRateController,
+          skillAmountController: skillAmountController,
+          tiffinReimRateController: tiffinReimRateController,
+          tiffinReimAmountController: tiffinReimAmountController,
+          educationAmountController: educationAmountController,
+          arearOtherAmountController: arrearOtherAmountController,
+          heavyDutyAmountController: heavyDutyAmountController,
+          attAmountController: attAmountController,
+          misclEarningController: misclAmountController,
+          overtimeAmountController: overtimeAmountController,
+          leaveEncashmentController: leaveEncashmentController,
+          pmgkyBenifitController: pmgkyAmountController,
+          otDaysController: otRateController,
+          gpaController: gpaAmountController,
+          unionFundController: unionFundAmountController,
+          canteenController: canteenAmountController,
+          wagesAdvanceController: wagesAdvanceAmountController,
+          arrearProfessionaltaxController:
+              arrearProfessionalTaxAmountController,
+          cmRelifeFundController: cmReliefFundAmountController,
+          medicalClaimController: medicalClaimAmountController,
+          benvolentFundController: benvolentFundAmountController,
+          incomeTaxController: incomeTaxAmountController,
+          loanRecoveryController: loanRecoveryAmountController,
+          pfLoanInterestController: pfLoanInterestAmountController,
+          misclDednController: misclAmountController,
+          labourWelfareFundController: labourWelfareFundController,
+          otDaysAmountsController: otAmountController,
+          selectedMonth: selectedMonth,
+          selectedYear: selectedYear,
+          arrearBasicWagesAmountController: arrearBasicWagesAmountController,
+          arrearHraAmountController: arrearHraController,
+          contractLabourChildrenwelfarefundController:
+              contractLabourChildrenwelfarefundController,
+          pfAccountNo: pfAccountNoController,
+        ),
       ),
     );
   }

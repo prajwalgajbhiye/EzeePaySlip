@@ -1,11 +1,14 @@
+import 'package:EzeePayslip/pages/custom_invoice/generate_invoice.dart';
 import 'package:EzeePayslip/pages/payment_slip/genrate_pay_slip.dart';
 import 'package:EzeePayslip/pages/upload_file/overtime_file.dart';
 import 'package:EzeePayslip/pages/upload_file/upload_file_row.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
+import '../test_component.dart';
 import 'employee_enfo_classes/custom_classes.dart';
 
 class HomePage extends StatefulWidget {
@@ -134,41 +137,37 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 
   @override
   void dispose() {
-    showFloatingButton.value =
-        false; // Hide the button when leaving the home screen
     super.dispose();
   }
 
-
-  Future<void> loadPaymentSlipEmployeeData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // Load all necessary fields here
-      employeeCodeController.text = prefs.getString('employeeCode') ?? '';
-      nameController.text = prefs.getString('name') ?? '';
-      bankNameController.text = prefs.getString('bankName') ?? '';
-      bankAccountNoController.text = prefs.getString('bankAccountNo') ?? '';
-      dobController.text = prefs.getString('dateOfBirth') ?? '';
-      gradeController.text = prefs.getString('grade') ?? '';
-      pfAccountNoController.text = prefs.getString('pfAccountNo') ?? '';
-      universalAccountNoController.text =
-          prefs.getString('universalAccountNo') ?? '';
-      esiNoController.text = prefs.getString('esi') ?? '';
-      esiNoController.text = prefs.getString('esi') ?? '';
-      // Repeat for other fields
-    });
-  }
-
-
+  // Future<void> loadPaymentSlipEmployeeData() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     // Load all necessary fields here
+  //     employeeCodeController.text = prefs.getString('employeeCode') ?? '';
+  //     nameController.text = prefs.getString('name') ?? '';
+  //     bankNameController.text = prefs.getString('bankName') ?? '';
+  //     bankAccountNoController.text = prefs.getString('bankAccountNo') ?? '';
+  //     dobController.text = prefs.getString('dateOfBirth') ?? '';
+  //     gradeController.text = prefs.getString('grade') ?? '';
+  //     pfAccountNoController.text = prefs.getString('pfAccountNo') ?? '';
+  //     universalAccountNoController.text =
+  //         prefs.getString('universalAccountNo') ?? '';
+  //     esiNoController.text = prefs.getString('esi') ?? '';
+  //     esiNoController.text = prefs.getString('esi') ?? '';
+  //     // Repeat for other fields
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
+    final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         double scaleFactor = (constraints.maxWidth > 800)
@@ -185,152 +184,98 @@ class _HomePageState extends State<HomePage> {
             child: Transform.scale(
               scale: scaleFactor,
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: ValueListenableBuilder<bool>(
-                    valueListenable: showFloatingButton,
-                    builder: (context, isButtonVisible, child) {
-                      double containerHeightFactor =
-                          isButtonVisible ? 0.38 : 0.42;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FileUploadSection(
+                        containerHeightFactor: 0.42, containerWidthFactor: 0.47,
+                        // uploadExcelFile: uploadExcelFile,
+                      ),
+                      // _buildFileUploadSection(containerHeightFactor),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          FileUploadSection(
-                            containerHeightFactor: containerHeightFactor,
-                            // uploadExcelFile: uploadExcelFile,
+                          FileUploadForOtSection(
+                            containerHeightFactor: 0.42,
+                            containerWidthFactor: 0.47,
                           ),
-                          // _buildFileUploadSection(containerHeightFactor),
-                          const SizedBox(
-                            height: 30,
+                          const SizedBox(width: 30),
+                          CustomSlipSection(
+                            containerHeightFactor: 0.42,
+                            containerWidthFactor: 0.229,
+                            navigateToGenerateSlip: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const GeneratePaySlip(
+                                            employeeCode: '',
+                                            name: '',
+                                            bankName: '',
+                                            grade: '',
+                                            esi: '',
+                                            pfAccountNo: '',
+                                            dateOfBirth: '',
+                                            bankAccountNo: '',
+                                            universalAccountNo: '',
+                                            workingDays: '',
+                                            basicWagesRate: '',
+                                            tiffinAllowance: '',
+                                            hra: '',
+                                            washAllowance: '',
+                                            medAllowance: '',
+                                            sheAllowance: '',
+                                            tiffinReimAllowance: '',
+                                            prfAllowance: '',
+                                            specialAllowance: '',
+                                            skillAllowance: '',
+                                            arearOtherAllowance: '',
+                                            educationAllowance: '',
+                                            heavyDutyAllowance: '',
+                                            attAllowance: '',
+                                            misclEarning: '',
+                                            overtimeRate: '',
+                                            leaveEncasment: '',
+                                            pmgkyBenifitRate: '',
+                                            gpa: '',
+                                            arrearProfessionalTax: '',
+                                            unionFund: '',
+                                            contractLabourChildrenWelfare: '',
+                                            canteen: '',
+                                            wagesAdvance: '',
+                                            cmRelifeFund: '',
+                                            medicalClaim: '',
+                                            benvolentFund: '',
+                                            incomeTax: '',
+                                            loanRecovery: '',
+                                            pfLoanInterest: '',
+                                            otherAllowance: '',
+                                            otDays: '',
+                                            miscl: '',
+                                            labourWelfare: '',
+                                            professionalTax: '',
+                                            arrearBasicWages: '',
+                                            arrearHra: '',
+                                            weeklyOff: '',
+                                          )));
+                            },
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              FileUploadForOtSection(
-                                containerHeightFactor: containerHeightFactor,
-                              ),
-                              const SizedBox(width: 30),
-                              CustomSlipSection(
-                                containerHeightFactor: containerHeightFactor,
-                                navigateToGenerateSlip: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const GeneratePaySlip(
-                                                employeeCode: '',
-                                                name: '',
-                                                bankName: '',
-                                                grade: '',
-                                                esi: '',
-                                                pfAccountNo: '',
-                                                dateOfBirth: '',
-                                                bankAccountNo: '',
-                                                universalAccountNo: '',
-                                                workingDays: '',
-                                                basicWagesRate: '',
-                                                tiffinAllowance: '',
-                                                hra: '',
-                                                washAllowance: '',
-                                                medAllowance: '',
-                                                sheAllowance: '',
-                                                tiffinReimAllowance: '',
-                                                prfAllowance: '',
-                                                specialAllowance: '',
-                                                skillAllowance: '',
-                                                arearOtherAllowance: '',
-                                                educationAllowance: '',
-                                                heavyDutyAllowance: '',
-                                                attAllowance: '',
-                                                misclEarning: '',
-                                                overtimeRate: '',
-                                                leaveEncasment: '',
-                                                pmgkyBenifitRate: '',
-                                                gpa: '',
-                                                arrearProfessionalTax: '',
-                                                unionFund: '',
-                                                contractLabourChildrenWelfare:
-                                                    '',
-                                                canteen: '',
-                                                wagesAdvance: '',
-                                                cmRelifeFund: '',
-                                                medicalClaim: '',
-                                                benvolentFund: '',
-                                                incomeTax: '',
-                                                loanRecovery: '',
-                                                pfLoanInterest: '',
-                                                otherAllowance: '',
-                                                otDays: '', miscl: '', labourWelfare: '', professionalTax: '',
-                                              )));
-                                },
-                              ),
-                            ],
-                          ),
+                          const SizedBox(width: 30),
+                          CustomInvoice(
+                              containerHeightFactor: 0.42,
+                              containerWidthFactor: 0.229)
                         ],
-                      );
-                    }),
-              ),
+                      ),
+                    ],
+                  )),
             ),
-          ),
-          bottomNavigationBar: ValueListenableBuilder<bool>(
-            valueListenable: showFloatingButton,
-            builder: (context, isButtonVisible, child) {
-              if (isButtonVisible) {
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.06,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pushNamed('/PaymentSlip')
-                            .then((_) {
-                          // Use a post-frame callback to ensure the setState is called correctly after returning
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            setState(() {
-                              loadPaymentSlipEmployeeData(); // Reload data when returning to the page
-                            });
-                            showFloatingButton.value =
-                                false; // Hide button on return
-                          });
-                        });
-                        // Go back to the existing instance
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.all(16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Back To Payment Slip Page",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Icon(Icons.payment, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else {
-                return const SizedBox(
-                  height: 1,
-                );
-              }
-            },
           ),
         );
       },
     );
   }
-
-
-
 }
