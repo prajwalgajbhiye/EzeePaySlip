@@ -41,7 +41,6 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
     });
   }
 
-
   Future<void> downloadPdf() async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.openSansRegular();
@@ -70,8 +69,9 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
         }
       }).fold(0.0, (a, b) => a + b);
 
-
-// Initialize fold with 0.0 for double
+      double el = totalWorkingDays >= 20
+          ? 1 / 20.0 * totalWorkingDays  // Calculate EL as a fraction
+          : 0.0;// Initialize fold with 0.0 for double
 
       // Calculate total overtime hours
       int totalOvertime = data.entries
@@ -82,11 +82,21 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
       // Calculate overtime days by dividing overtime hours by 8
       double overtimeDays = totalOvertime / 8;
 
+      double leaveDays = totalWorkingDays <= 26 ? (26 - totalWorkingDays) : 0; // Ensure leave days are 0 if working days > 26
+      int totalWeeklyOff = 4; // Assume 4 weekly offs in the month
+      num weeklyOffTaken = totalWorkingDays > 26
+          ? (totalWeeklyOff - (totalWorkingDays - 26)).clamp(0, totalWeeklyOff)
+          : totalWeeklyOff;
+
+
+
       employeeDataList.add({
         'srNo': srNo,
         'name': employeeName,
         'workingDays': totalWorkingDays.toStringAsFixed(0),
-        // Ensure it’s formatted to 1 decimal
+        'El': el.toStringAsFixed(2),
+        'Weekly Off': weeklyOffTaken, // Ensure Weekly Off is present
+        'Leave Days':leaveDays, // Ensure Weekly Off is present
         'overtime': totalOvertime,
         'overtimeDays': overtimeDays.toStringAsFixed(3),
       });
@@ -110,30 +120,40 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
                       font: boldFont),
                 ),
                 pw.Text(
-                  'Employee Overtime Report',
+                  'Employee Report',
                   style: pw.TextStyle(fontSize: 18,
                       fontWeight: pw.FontWeight.bold,
                       font: boldFont),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Expanded(
+
                   child: pw.Table.fromTextArray(
+                    cellAlignment: pw.Alignment.center,
                     headers: [
                       'Sr No',
                       'Employee Name',
                       'Working Days',
-                      'Overtime hours',
+                      'El',
+                      'Weekly Off',
+                      'Leave Days',
                       'Overtime days'
                     ],
                     headerStyle: pw.TextStyle(
+
+                        color: PdfColors.grey900,
                         fontWeight: pw.FontWeight.bold, font: boldFont),
                     cellStyle: pw.TextStyle(font: font),
+                    headerAlignment: pw.Alignment.center, // Align headers to center
+
                     data: rows.map((row) =>
                     [
                       row['srNo'],
                       row['name'],
                       row['workingDays'],
-                      row['overtime'].toString(),
+                      row['El'].toString(),
+                      row['Weekly Off'].toString(),
+                      row['Leave Days'].toString(),
                       row['overtimeDays']
                     ]).toList(),
                     columnWidths: {
@@ -142,9 +162,12 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
                       2: const pw.FlexColumnWidth(1),
                       3: const pw.FlexColumnWidth(1),
                       4: const pw.FlexColumnWidth(1),
+                      5: const pw.FlexColumnWidth(1),
+                      6: const pw.FlexColumnWidth(1),
                     },
                   ),
-                ),
+                )
+
               ],
             );
           },
@@ -156,7 +179,7 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
     final now = DateTime.now();
     final formattedDateTime = '${now.year}-${now.month}-${now.day}_${now
         .hour}-${now.minute}';
-    final fileName = 'EmployeeOvertimeReport_$formattedDateTime.pdf';
+    final fileName = 'Employee Report_$formattedDateTime.pdf';
 
     // Save PDF to device file system
     try {
@@ -181,6 +204,7 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
       );
     }
   }
+
 
   Future<void> _loadSavedOtExcelFile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -315,6 +339,8 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
           // Adjust column index for OT details
           "Day 31": getCellValue(row[64]),
           "OT 31": getCellValue(row[65]),
+          "Weekly off": getCellValue(row[67]),
+          "Leave days": getCellValue(row[68]),
           // Adjust column index for OT details
         };
       }
@@ -417,9 +443,9 @@ class _FileUploadForOtSectionState extends State<FileUploadForOtSection> {
                 ),
                 filled: true,
                 fillColor: Colors.white70,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,

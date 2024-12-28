@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class EmployeeDetailsRow extends StatelessWidget {
   final String employeeCode;
@@ -591,7 +592,7 @@ class EarningPaymentRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
               alignment: Alignment.centerRight,
               decoration: const BoxDecoration(
                 border: Border(
@@ -793,8 +794,10 @@ class DetailsRow5 extends StatelessWidget {
   final String grossEarning;
   final String grossDeduction;
 
-  const DetailsRow5(
+   DetailsRow5(
       {super.key, required this.grossEarning, required this.grossDeduction});
+  final formatter = NumberFormat('#,##0.00'); // Format with commas and 2 decimal places
+
 
   Widget _buildRow(
     String title1,
@@ -834,7 +837,7 @@ class DetailsRow5 extends StatelessWidget {
           Flexible(
             flex: 2,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 1),
 
 alignment: Alignment.centerRight,
               decoration: const BoxDecoration(
@@ -896,26 +899,45 @@ alignment: Alignment.centerRight,
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    // Format the grossEarning and grossDeduction values to show commas and 2 decimal places
+    String formattedGrossEarning = '';
+    String formattedGrossDeduction = '';
+
+    try {
+      double earning = double.parse(grossEarning);
+      double deduction = double.parse(grossDeduction);
+      formattedGrossEarning = formatter.format(earning); // Format the earning
+      formattedGrossDeduction = formatter.format(deduction); // Format the deduction
+    } catch (e) {
+      formattedGrossEarning = grossEarning; // If parsing fails, show the original value
+      formattedGrossDeduction = grossDeduction; // If parsing fails, show the original value
+    }
+
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: Colors.grey))
       ),
       child: Column(
         children: [
           _buildRow(
-              "Gross Earning", grossEarning, "Gross Deduction", grossDeduction),
+              "Gross Earning", '₹ $formattedGrossEarning',
+              "Gross Deduction", '₹ $formattedGrossDeduction'),
         ],
       ),
     );
   }
+
 }
 
 class DetailsRow6 extends StatelessWidget {
   final String netSalary;
 
-  const DetailsRow6({super.key, required this.netSalary});
+   DetailsRow6({super.key, required this.netSalary});
+
+  final formatter = NumberFormat('#,##0.00'); // Format with commas and 2 decimal places
 
   Widget _buildRow(String title1, String value) {
     return Row(
@@ -961,20 +983,22 @@ class DetailsRow6 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-          border: Border(
-              // left: BorderSide(color: Colors.red),
-              // bottom: BorderSide(color: Colors.grey),
-              // right: BorderSide(color: Colors.grey)
-              )),
-      child: Column(
-        children: [
-          _buildRow("Net Salary :", netSalary),
-        ],
-      ),
+    // Format the netSalary value to show commas and 2 decimal places
+    String formattedNetSalary = '';
+    try {
+      double salary = double.parse(netSalary);
+      formattedNetSalary = formatter.format(salary); // Format the salary
+    } catch (e) {
+      formattedNetSalary = netSalary; // If parsing fails, show the original value
+    }
+
+    return Column(
+      children: [
+        _buildRow("Net Salary :", '₹ $formattedNetSalary'),
+      ],
     );
   }
+
 }
 
 class DetailsRow7 extends StatelessWidget {

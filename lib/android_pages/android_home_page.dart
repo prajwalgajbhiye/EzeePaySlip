@@ -9,6 +9,8 @@
 // import '../main.dart';
 // import '../pages/employee_enfo_classes/custom_classes.dart';
 // import '../test_component.dart';
+// import 'android_generate_page.dart';
+// import 'android_upload_file_row.dart';
 //
 // class HomePage extends StatefulWidget {
 //   const HomePage({super.key});
@@ -273,7 +275,7 @@
 //                                     otDays: '',
 //                                     miscl: '',
 //                                     labourWelfare: '',
-//                                     professionalTax: '',
+//                                     professionalTax: '', arrearBasicWages: '', arrearHra: '', weeklyOff: '', contractorName: '',
 //                                   ),
 //                                 ),
 //                               );
@@ -353,7 +355,7 @@
 //                                     otDays: '',
 //                                     miscl: '',
 //                                     labourWelfare: '',
-//                                     professionalTax: '',
+//                                     professionalTax: '', arrearBasicWages: '', weeklyOff: '', arrearHra: '', contractorName: '',
 //                                   ),
 //                                 ),
 //                               );

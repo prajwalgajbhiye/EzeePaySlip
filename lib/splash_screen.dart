@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:EzeePayslip/pages/home_page.dart';
+import 'package:EzeePayslip/test_component.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import 'android_pages/android_home_page.dart'; // Required for defaultTargetPlatform
+import 'android_pages/android_home_page.dart';
+import 'main.dart'; // Required for defaultTargetPlatform
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,9 +19,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   bool _visible = false;
   bool _positioned = false;
 
+
+
+
   @override
   void initState() {
     super.initState();
+    // Future.delayed(Duration.zero, () {
+    //   PopupManager().initialize();
+    // });
     // Start animation after a delay
     Timer(const Duration(milliseconds: 500), () {
       setState(() {
@@ -85,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               bottom: textBottomPosition,
               child: isAndroid ?Container(
                 alignment: Alignment.center,
-                margin: EdgeInsets.all(10),
+                margin: const EdgeInsets.all(10),
                 height: 200,
                 width: 300,
                 // color: Colors.red,

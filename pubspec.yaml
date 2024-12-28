@@ -40,11 +40,14 @@ dependencies:
   file_picker:
   syncfusion_flutter_pdfviewer:
   excel:
-  shared_preferences:
+
   number_to_words:
   path_provider:
   animated_text_kit:
   path_provider_android: ^2.2.12
+  intl: ^0.19.0
+  shared_preferences: ^2.3.3
+  desktop_window: ^0.4.2
 
 
 dev_dependencies:
@@ -87,10 +90,19 @@ flutter:
   fonts:
     - family: Roboto-Regular.ttf
       fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
     - family: Oi-Regular.ttf
       fonts:
         - asset: assets/fonts/PermanentMarker-Regular.ttf
+    - family: notoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-VariableFont_wdth,wght.ttf
+    - family: timesNewRoman
+      fonts:
+        - asset: assets/fonts/Times New Roman.ttf
+    - family: boldTimesNewRoman
+      fonts:
+        - asset: assets/fonts/Times New Roman Bold.ttf
 
   #
   # For details regarding fonts from package dependencies,

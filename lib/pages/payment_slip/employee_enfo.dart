@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../android_pages/android_generate_page.dart';
 import 'genrate_pay_slip.dart';
 
 class EmployeeInfoDisplayPage extends StatelessWidget {
@@ -129,7 +130,18 @@ class EmployeeInfoDisplayPage extends StatelessWidget {
                       arrearBasicWages:
                           employeeData['ARREAR BASIC WAGES'] ?? '',
                       arrearHra: employeeData['ARREAR HRA'] ?? '',
-                      weeklyOff: employeeData['WEEKLY OFF'] ?? '0000',
+                      weeklyOff: employeeData['WEEKLY OFF'] ?? '0',
+                      contractorName: 'SATYAM CONSTRUCTION',
+                      arrearPerf: employeeData['ARREAR PERF ALLOWANCE'] ?? '0',
+                      arrearWash: employeeData['ARREAR WASH ALLOWANCE'] ?? '0',
+                      arrearShe: employeeData['ARREAR SHE ALLOWANCE'] ?? '0',
+                      arrearMed: employeeData['ARREAR MED ALLOWANCE'] ?? '0',
+                      serviceAllowance:
+                          employeeData['SERVICE ALLOWANCE'] ?? '0',
+                      arrearTiffinReim:
+                          employeeData['ARREAR TIFFIN REIM ALLOWANCE'] ?? '0',
+                      leaveDays: employeeData['LEAVE DAYS'] ?? '0',
+                      phDays: employeeData['PH DAYS'] ?? '0',
                     ),
                   ));
             },
